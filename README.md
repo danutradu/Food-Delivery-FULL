@@ -22,3 +22,18 @@ cd services/order-service && mvn spring-boot:run
 cd services/payment-service && mvn spring-boot:run
 ...
 ```
+
+
+## Ports
+
+| Service | Port |
+|---|---|
+| auth-service | 8082 |
+| order-service | 8083 |
+| payment-service | 8084 |
+| catalog-service | 8085 |
+| cart-service | 8086 |
+| restaurant-ops-service | 8087 |
+| delivery-service | 8088 |
+| notification-service | 8089 |
+| user-service | 8090 |

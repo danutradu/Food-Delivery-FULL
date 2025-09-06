@@ -8,6 +8,7 @@ import fd.restaurant.RestaurantAcceptedV1;
 import fd.restaurant.RestaurantRejectedV1;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/ops/orders")
+@Slf4j
 public class OpsController {
 
   private final KitchenTicketRepository tickets;
@@ -26,7 +28,8 @@ public class OpsController {
 
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/{orderId}/accept")
-  public Map<String,Object> accept(@PathVariable UUID orderId, @RequestParam(defaultValue = "15") int etaMinutes) {
+  public Map<String,Object> accept(@PathVariable("orderId") UUID orderId, @RequestParam(name = "etaMinutes", defaultValue = "15") int etaMinutes) {
+    log.info("RestaurantAccepted orderId={} etaMinutes={}", orderId, etaMinutes);
     KitchenTicketEntity t = tickets.findByOrderId(orderId).orElseThrow();
     t.setStatus("ACCEPTED");
     tickets.save(t);
@@ -39,7 +42,8 @@ public class OpsController {
 
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/{orderId}/reject")
-  public Map<String,Object> reject(@PathVariable UUID orderId, @RequestParam(defaultValue = "Out of stock") String reason) {
+  public Map<String,Object> reject(@PathVariable("orderId") UUID orderId, @RequestParam(name = "reason", defaultValue = "Out of stock") String reason) {
+    log.info("RestaurantRejected orderId={} reason={}", orderId, reason);
     KitchenTicketEntity t = tickets.findByOrderId(orderId).orElseThrow();
     t.setStatus("REJECTED");
     tickets.save(t);
@@ -52,7 +56,8 @@ public class OpsController {
 
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/{orderId}/ready")
-  public Map<String,Object> ready(@PathVariable UUID orderId) {
+  public Map<String,Object> ready(@PathVariable("orderId") UUID orderId) {
+    log.info("RestaurantOrderReady orderId={}", orderId);
     KitchenTicketEntity t = tickets.findByOrderId(orderId).orElseThrow();
     t.setStatus("READY");
     tickets.save(t);

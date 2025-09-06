@@ -13,6 +13,7 @@ import fd.user.UserRegisteredV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
   private final UserRepository users;
@@ -37,6 +39,7 @@ public class AuthController {
 
   @PostMapping("/register")
   public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest req) {
+    log.info("UserRegistered username={} email={}", req.username(), req.email());
     if (users.findByUsername(req.username()).isPresent()) return ResponseEntity.badRequest().build();
     if (users.findByEmail(req.email()).isPresent()) return ResponseEntity.badRequest().build();
 
@@ -56,6 +59,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest req) {
+    log.info("UserLogin username={}", req.username());
     Optional<UserEntity> userOpt = users.findByUsername(req.username());
     if (userOpt.isEmpty()) return ResponseEntity.status(401).build();
     UserEntity u = userOpt.get();

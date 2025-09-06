@@ -27,7 +27,7 @@ public interface CartMappers {
   @Mapping(target="occurredAt", expression="java(Instant.now())")
   @Mapping(target="cartId", expression="java(cart.getId())")
   @Mapping(target="customerUserId", expression="java(cart.getCustomerUserId())")
-  @Mapping(target="restaurantId", expression="java(UUID.fromString(\"00000000-0000-0000-0000-000000000000\"))")
+  @Mapping(target="restaurantId", expression="java(cart.getRestaurantId())")
   @Mapping(target="currency", source="currency")
   @Mapping(target="totalCents", expression="java(cart.getItems().stream().mapToInt(i->i.getUnitPriceCents()*i.getQuantity()).sum())")
   @Mapping(target="items", expression="java(toAvroItems(cart.getItems()))")

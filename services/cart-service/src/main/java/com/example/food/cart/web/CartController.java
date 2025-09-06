@@ -9,6 +9,7 @@ import fd.cart.CartCheckedOutV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
 
   private final CartRepository carts;
@@ -27,7 +29,8 @@ public class CartController {
 
   @PreAuthorize("hasRole('CUSTOMER')")
   @PostMapping("/carts/{cartId}/items")
-  public CartEntity addItem(@PathVariable UUID cartId, @Valid @RequestBody AddItemRequest req, Authentication auth) {
+  public CartEntity addItem(@PathVariable("cartId") UUID cartId, @Valid @RequestBody AddItemRequest req, Authentication auth) {
+    log.info("CartItemAdded cartId={} name={} qty={} priceCents={}", cartId, req.name(), req.quantity(), req.unitPriceCents());
     CartEntity c = carts.findById(cartId).orElseGet(() -> {
       CartEntity nc = new CartEntity();
       nc.setId(cartId);
@@ -42,7 +45,8 @@ public class CartController {
 
   @PreAuthorize("hasRole('CUSTOMER')")
   @PostMapping("/carts/{cartId}/checkout")
-  public Map<String,Object> checkout(@PathVariable UUID cartId) {
+  public Map<String,Object> checkout(@PathVariable("cartId") UUID cartId) {
+    log.info("CartCheckedOut cartId={}", cartId);
     CartEntity c = carts.findById(cartId).orElseThrow();
     CartCheckedOutV1 evt = mapper.toCheckedOut(c);
     ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.cart.checked-out.v1", c.getId().toString(), evt);

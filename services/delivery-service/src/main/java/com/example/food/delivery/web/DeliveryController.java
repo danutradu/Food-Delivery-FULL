@@ -7,6 +7,7 @@ import fd.delivery.OrderDeliveredV1;
 import fd.delivery.OrderPickedUpV1;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/delivery/tasks")
+@Slf4j
 public class DeliveryController {
 
   private final AssignmentRepository assignments;
@@ -25,7 +27,8 @@ public class DeliveryController {
 
   @PreAuthorize("hasAnyRole('COURIER','ADMIN')")
   @PostMapping("/{assignmentId}/pickup")
-  public Map<String,Object> pickup(@PathVariable UUID assignmentId) {
+  public Map<String,Object> pickup(@PathVariable("assignmentId") UUID assignmentId) {
+    log.info("DeliveryPickedUp assignmentId={}", assignmentId);
     AssignmentEntity a = assignments.findById(assignmentId).orElseThrow();
     a.setStatus("PICKED_UP");
     assignments.save(a);
@@ -38,7 +41,8 @@ public class DeliveryController {
 
   @PreAuthorize("hasAnyRole('COURIER','ADMIN')")
   @PostMapping("/{assignmentId}/delivered")
-  public Map<String,Object> delivered(@PathVariable UUID assignmentId) {
+  public Map<String,Object> delivered(@PathVariable("assignmentId") UUID assignmentId) {
+    log.info("DeliveryCompleted assignmentId={}", assignmentId);
     AssignmentEntity a = assignments.findById(assignmentId).orElseThrow();
     a.setStatus("DELIVERED");
     assignments.save(a);

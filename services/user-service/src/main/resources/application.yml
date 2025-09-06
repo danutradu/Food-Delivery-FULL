@@ -1,5 +1,8 @@
 server:
   port: 8090
+  tomcat:
+    accesslog:
+      enabled: false
 
 spring:
   datasource:
@@ -26,6 +29,8 @@ spring:
         specific.avro.reader: true
     listener:
       missing-topics-fatal: false
+  mvc:
+    log-request-details: false
 
 management:
   endpoints:
@@ -36,3 +41,17 @@ management:
 security:
   jwt:
     secret: "u81ShczV/wuR6aiV+PevN6e3wTxX8Uj1CqU4m8E5qjI="
+
+logging:
+  level:
+    root: INFO
+    com.example.food: INFO
+    org.springframework.kafka: INFO
+    org.springframework.kafka.listener: INFO
+    org.apache.kafka: WARN
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{rid}] [%t] %logger{36} - %msg%n"

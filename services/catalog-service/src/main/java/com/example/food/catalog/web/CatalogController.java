@@ -12,6 +12,7 @@ import fd.catalog.RestaurantCreatedV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class CatalogController {
 
   private final RestaurantRepository restaurants;
@@ -30,6 +32,7 @@ public class CatalogController {
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/restaurants")
   public RestaurantEntity createRestaurant(@Valid @RequestBody RestaurantUpsert req) {
+    log.info("RestaurantCreated name={} ownerUserId={}", req.name(), req.ownerUserId());
     RestaurantEntity r = mapper.toEntity(req);
     restaurants.save(r);
     RestaurantCreatedV1 evt = mapper.toRestaurantCreated(r);
@@ -42,6 +45,7 @@ public class CatalogController {
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/restaurants/{id}/menu/items")
   public MenuItemEntity upsertMenuItem(@PathVariable("id") UUID restaurantId, @Valid @RequestBody MenuItemUpsert req) {
+    log.info("MenuItemUpsert restaurantId={} name={}", restaurantId, req.name());
     MenuItemEntity m = mapper.toEntity(req);
     m.setRestaurantId(restaurantId);
     menuItems.save(m);

@@ -7,12 +7,14 @@ import fd.delivery.CourierAssignedV1;
 import fd.delivery.DeliveryRequestedV1;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DeliveryListeners {
 
   private final AssignmentRepository assignments;
@@ -21,6 +23,7 @@ public class DeliveryListeners {
 
   @KafkaListener(id="delivery-requests", topics="fd.delivery.requested.v1", groupId = "delivery-service")
   public void onDeliveryRequested(DeliveryRequestedV1 evt) {
+    log.info("KAFKA RECV topic=fd.delivery.requested.v1 orderId={} restaurantId={}", evt.getOrderId(), evt.getRestaurantId());
     AssignmentEntity a = assignments.findByOrderId(evt.getOrderId())
         .orElseGet(() -> mapper.fromRequested(evt));
     assignments.save(a);

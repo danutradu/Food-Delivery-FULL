@@ -1,0 +1,21 @@
+{
+  "type":"record","name":"OrderCreatedV1","namespace":"fd.order",
+  "fields":[
+    {"name":"eventId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"occurredAt","type":{"type":"long","logicalType":"timestamp-millis"}},
+    {"name":"orderId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"customerUserId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"totalCents","type":"int"},
+    {"name":"currency","type":"string"},
+    {"name":"items","type":{"type":"array","items":{
+      "type":"record","name":"OrderItem",
+      "fields":[
+        {"name":"menuItemId","type":{"type":"string","logicalType":"uuid"}},
+        {"name":"name","type":"string"},
+        {"name":"unitPriceCents","type":"int"},
+        {"name":"quantity","type":"int"}
+      ]
+    }}}
+  ]
+}

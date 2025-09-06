@@ -1,0 +1,28 @@
+server:
+  port: 8089
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9094
+    properties:
+      schema.registry.url: http://localhost:8081
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific.avro.reader: true
+    listener:
+      missing-topics-fatal: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+security:
+  jwt:
+    secret: "u81ShczV/wuR6aiV+PevN6e3wTxX8Uj1CqU4m8E5qjI="

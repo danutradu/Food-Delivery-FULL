@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "RestaurantCreatedV1",
+  "namespace": "fd.catalog",
+  "fields": [
+    {"name":"eventId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"occurredAt","type":{"type":"long","logicalType":"timestamp-millis"}},
+    {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"ownerUserId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"name","type":"string"},
+    {"name":"address","type":"string"},
+    {"name":"isOpen","type":"boolean"}
+  ]
+}

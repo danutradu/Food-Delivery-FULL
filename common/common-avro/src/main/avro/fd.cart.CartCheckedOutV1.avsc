@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "CartCheckedOutV1",
+  "namespace": "fd.cart",
+  "fields": [
+    {"name":"eventId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"occurredAt","type":{"type":"long","logicalType":"timestamp-millis"}},
+    {"name":"cartId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"customerUserId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"currency","type":"string"},
+    {"name":"totalCents","type":"int"},
+    {"name":"items","type":{"type":"array","items":{
+      "type":"record","name":"CartItem",
+      "fields":[
+        {"name":"menuItemId","type":{"type":"string","logicalType":"uuid"}},
+        {"name":"name","type":"string"},
+        {"name":"unitPriceCents","type":"int"},
+        {"name":"quantity","type":"int"}
+      ]
+    }}}
+  ]
+}

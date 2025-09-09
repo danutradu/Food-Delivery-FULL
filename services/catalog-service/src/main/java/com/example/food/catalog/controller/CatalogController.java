@@ -6,7 +6,7 @@ import com.example.food.catalog.repository.MenuItemRepository;
 import com.example.food.catalog.repository.RestaurantRepository;
 import com.example.food.catalog.dto.MenuItemUpsert;
 import com.example.food.catalog.dto.RestaurantUpsert;
-import com.example.food.catalog.mapper.CatalogMappers;
+import com.example.food.catalog.mapper.CatalogMapper;
 import fd.catalog.MenuItemUpdatedV1;
 import fd.catalog.RestaurantCreatedV1;
 import jakarta.validation.Valid;
@@ -27,7 +27,7 @@ public class CatalogController {
   private final RestaurantRepository restaurants;
   private final MenuItemRepository menuItems;
   private final KafkaTemplate<String, Object> kafka;
-  private final CatalogMappers mapper;
+  private final CatalogMapper mapper;
 
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/restaurants")

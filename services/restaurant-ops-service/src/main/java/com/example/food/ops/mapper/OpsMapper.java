@@ -6,12 +6,13 @@ import fd.restaurant.RestaurantAcceptedV1;
 import fd.restaurant.RestaurantRejectedV1;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class})
-public interface OpsMappers {
+@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface OpsMapper {
   @Mapping(target="eventId", expression="java(UUID.randomUUID())")
   @Mapping(target="occurredAt", expression="java(Instant.now())")
   @Mapping(target="orderId", expression="java(t.getOrderId())")

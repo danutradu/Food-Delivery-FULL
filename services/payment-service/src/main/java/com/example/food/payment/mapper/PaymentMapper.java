@@ -3,12 +3,14 @@ package com.example.food.payment.mapper;
 import com.example.food.payment.model.PaymentEntity;
 import fd.payment.PaymentAuthorizedV1;
 import fd.payment.PaymentRequestedV1;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class})
+@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface PaymentMapper {
   @Mapping(target="id", expression="java(UUID.randomUUID())")
   @Mapping(target="orderId", source="orderId")

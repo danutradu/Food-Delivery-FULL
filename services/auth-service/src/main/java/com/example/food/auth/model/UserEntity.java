@@ -13,7 +13,7 @@ public class UserEntity {
   @Column(nullable=false) private String passwordHash;
   @Column(nullable=false) private boolean enabled = true;
 
-  @ManyToMany(fetch=FetchType.EAGER)
+  @ManyToMany(fetch=FetchType.LAZY)
   @JoinTable(name="user_roles",
       joinColumns=@JoinColumn(name="user_id"),
       inverseJoinColumns=@JoinColumn(name="role_id"))

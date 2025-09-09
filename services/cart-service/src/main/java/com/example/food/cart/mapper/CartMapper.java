@@ -11,8 +11,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class})
-public interface CartMappers {
+@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface CartMapper {
   @Mapping(target="id", expression="java(UUID.randomUUID())")
   @Mapping(target="cart", ignore = true)
   CartItemEntity toItem(AddItemRequest req);

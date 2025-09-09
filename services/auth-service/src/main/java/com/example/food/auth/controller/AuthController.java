@@ -8,7 +8,7 @@ import com.example.food.auth.security.TokenService;
 import com.example.food.auth.dto.JwtResponse;
 import com.example.food.auth.dto.LoginRequest;
 import com.example.food.auth.dto.RegisterRequest;
-import com.example.food.auth.mapper.UserMappers;
+import com.example.food.auth.mapper.UserMapper;
 import fd.user.UserRegisteredV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class AuthController {
   private final RoleRepository roles;
   private final TokenService tokens;
   private final KafkaTemplate<String, Object> kafka;
-  private final UserMappers mapper;
+  private final UserMapper mapper;
   private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
   @PostMapping("/register")

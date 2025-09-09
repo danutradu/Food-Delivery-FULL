@@ -4,7 +4,7 @@ import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.model.CartItemEntity;
 import com.example.food.cart.repository.CartRepository;
 import com.example.food.cart.dto.AddItemRequest;
-import com.example.food.cart.mapper.CartMappers;
+import com.example.food.cart.mapper.CartMapper;
 import fd.cart.CartCheckedOutV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class CartController {
 
   private final CartRepository carts;
   private final KafkaTemplate<String, Object> kafka;
-  private final CartMappers mapper;
+  private final CartMapper mapper;
 
   @PreAuthorize("hasRole('CUSTOMER')")
   @PostMapping("/carts/{cartId}/items")

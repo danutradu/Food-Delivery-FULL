@@ -5,13 +5,15 @@ import com.example.food.order.model.OrderItemEntity;
 import fd.order.OrderCreatedV1;
 import fd.order.OrderItem;
 import fd.payment.PaymentRequestedV1;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class})
+@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface OrderEventMapper {
   @Mapping(target="eventId", expression="java(UUID.randomUUID())")
   @Mapping(target="occurredAt", expression="java(Instant.now())")

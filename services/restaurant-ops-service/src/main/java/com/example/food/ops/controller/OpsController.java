@@ -1,7 +1,7 @@
 package com.example.food.ops.controller;
 
 import com.example.food.ops.model.KitchenTicketEntity;
-import com.example.food.ops.mapper.OpsMappers;
+import com.example.food.ops.mapper.OpsMapper;
 import com.example.food.ops.repository.KitchenTicketRepository;
 import fd.restaurant.OrderReadyForPickupV1;
 import fd.restaurant.RestaurantAcceptedV1;
@@ -24,7 +24,7 @@ public class OpsController {
 
   private final KitchenTicketRepository tickets;
   private final KafkaTemplate<String, Object> kafka;
-  private final OpsMappers mapper;
+  private final OpsMapper mapper;
 
   @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
   @PostMapping("/{orderId}/accept")

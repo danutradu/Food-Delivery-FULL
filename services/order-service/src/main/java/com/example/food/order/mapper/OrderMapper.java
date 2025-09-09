@@ -1,15 +1,15 @@
 package com.example.food.order.mapper;
 
+import com.example.food.order.dto.CreateOrderRequest;
 import com.example.food.order.model.OrderEntity;
 import com.example.food.order.model.OrderItemEntity;
-import com.example.food.order.dto.CreateOrderRequest;
 import org.mapstruct.*;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class})
+@Mapper(componentModel = "spring", imports = {UUID.class, Instant.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface OrderMapper {
   @Mapping(target="id", expression="java(UUID.randomUUID())")
   @Mapping(target="customerUserId", source="customerUserId")

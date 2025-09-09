@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -33,12 +34,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  JwtDecoder jwtDecoder(@Value("${security.jwt.secret}") String raw) {
-    byte[] secret = java.util.Base64.getDecoder().decode(raw);
-    javax.crypto.SecretKey key = new javax.crypto.spec.SecretKeySpec(secret, "HmacSHA256");
-    return org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-        .withSecretKey(key)
-        .macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256)
-        .build();
+  JwtDecoder jwtDecoder(@Value("${security.jwt.jwks-uri}") String jwksUri) {
+    return NimbusJwtDecoder.withJwkSetUri(jwksUri).build();
   }
 }

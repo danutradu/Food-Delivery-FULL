@@ -5,7 +5,11 @@ import com.example.food.auth.domain.UserEntity;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -15,34 +19,30 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TokenService {
-  @Value("${security.jwt.secret}")
-  private String rawSecret;
 
-  private SecretKey key() {
-    byte[] secret = Base64.getDecoder().decode(rawSecret);
-    return Keys.hmacShaKeyFor(secret);
-  }
+  private final JwtEncoder jwtEncoder;
 
   public record IssuedToken(String token, long expiresAtEpochSeconds) {}
 
   public IssuedToken issue(UserEntity user) {
-    Instant now = Instant.now();
-    Instant exp = now.plusSeconds(3600);
-    List<String> roles = user.getRoles().stream().map(RoleEntity::getName).toList();
+    var now = Instant.now();
+    var exp = now.plusSeconds(3600);
+    var roles = user.getRoles().stream().map(RoleEntity::getName).toList();
 
-    String jwt = Jwts.builder()
-        .setSubject(user.getId().toString())
-        .setIssuer("auth-service")
-        .setAudience("food-delivery")
-        .setIssuedAt(Date.from(now))
-        .setExpiration(Date.from(exp))
+    var claims = JwtClaimsSet.builder()
+        .issuer("auth-service")
+        .subject(user.getId().toString())
+        .audience(List.of("food-delivery"))
+        .issuedAt(now)
+        .expiresAt(exp)
         .claim("username", user.getUsername())
         .claim("email", user.getEmail())
         .claim("roles", roles)
-        .signWith(key(), SignatureAlgorithm.HS256)
-        .compact();
+        .build();
 
+    var jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     return new IssuedToken(jwt, exp.getEpochSecond());
   }
 }

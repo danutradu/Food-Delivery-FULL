@@ -7,8 +7,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/auth
-    username: postgres
-    password: postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: update
@@ -38,10 +38,6 @@ management:
     web:
       exposure:
         include: health,info
-
-security:
-  jwt:
-    secret: "u81ShczV/wuR6aiV+PevN6e3wTxX8Uj1CqU4m8E5qjI="
 
 logging:
   level:

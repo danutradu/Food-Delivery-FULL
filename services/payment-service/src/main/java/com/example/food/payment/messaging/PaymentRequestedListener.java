@@ -13,7 +13,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.UUID;
 
 @Component
@@ -24,7 +24,7 @@ public class PaymentRequestedListener {
   private final PaymentRepository payments;
   private final KafkaTemplate<String, Object> kafka;
   private final PaymentMapper mapper;
-  private final Random random = new Random();
+  private final SecureRandom secureRandom = new SecureRandom();
 
   @KafkaListener(id="payment-requests", topics="fd.payment.requested.v1", groupId = "payment-service")
   @Transactional
@@ -32,7 +32,7 @@ public class PaymentRequestedListener {
     log.info("KAFKA RECV topic=fd.payment.requested.v1 orderId={} amount={}", evt.getOrderId(), evt.getAmountCents());
     UUID orderId = evt.getOrderId();
     PaymentEntity p = payments.findByOrderId(orderId).orElseGet(() -> mapper.fromRequested(evt));
-    p.setAuthorizationCode("AUTH-" + Math.abs(random.nextInt()));
+    p.setAuthorizationCode("AUTH-" + Math.abs(secureRandom.nextInt()));
     payments.save(p);
 
     PaymentAuthorizedV1 out = mapper.toAuthorized(p);

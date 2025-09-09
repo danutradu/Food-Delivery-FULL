@@ -30,7 +30,7 @@ management:
 
 security:
   jwt:
-    secret: "u81ShczV/wuR6aiV+PevN6e3wTxX8Uj1CqU4m8E5qjI="
+    jwks-uri: ${JWT_JWKS_URI:http://localhost:8082/.well-known/jwks.json}
 
 logging:
   level:

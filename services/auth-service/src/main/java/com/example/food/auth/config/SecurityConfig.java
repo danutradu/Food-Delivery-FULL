@@ -9,9 +9,9 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable())
+    http.csrf(csrf -> csrf.disable()) // CSRF disabled for stateless JWT-based API
         .authorizeHttpRequests(reg -> reg
-            .requestMatchers("/actuator/**", "/auth/**").permitAll()
+            .requestMatchers("/actuator/**", "/auth/**", "/.well-known/jwks.json").permitAll()
             .anyRequest().authenticated());
     return http.build();
   }

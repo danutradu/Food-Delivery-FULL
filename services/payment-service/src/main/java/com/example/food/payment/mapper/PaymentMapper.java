@@ -1,4 +1,4 @@
-package com.example.food.payment.mapping;
+package com.example.food.payment.mapper;
 
 import com.example.food.payment.model.PaymentEntity;
 import fd.payment.PaymentAuthorizedV1;

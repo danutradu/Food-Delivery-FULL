@@ -1,7 +1,7 @@
 package com.example.food.delivery.service;
 
 import com.example.food.delivery.model.AssignmentEntity;
-import com.example.food.delivery.mapping.DeliveryMapper;
+import com.example.food.delivery.mapper.DeliveryMapper;
 import com.example.food.delivery.repository.AssignmentRepository;
 import fd.delivery.CourierAssignedV1;
 import fd.delivery.DeliveryRequestedV1;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class DeliveryListeners {
+public class DeliveryListener {
 
   private final AssignmentRepository assignments;
   private final KafkaTemplate<String, Object> kafka;

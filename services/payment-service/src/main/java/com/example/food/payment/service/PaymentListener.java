@@ -1,7 +1,7 @@
 package com.example.food.payment.service;
 
 import com.example.food.payment.model.PaymentEntity;
-import com.example.food.payment.mapping.PaymentMapper;
+import com.example.food.payment.mapper.PaymentMapper;
 import com.example.food.payment.repository.PaymentRepository;
 import fd.payment.PaymentAuthorizedV1;
 import fd.payment.PaymentRequestedV1;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentRequestedListener {
+public class PaymentListener {
 
   private final PaymentRepository payments;
   private final KafkaTemplate<String, Object> kafka;

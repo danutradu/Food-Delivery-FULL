@@ -1,4 +1,4 @@
-package com.example.food.delivery.mapping;
+package com.example.food.delivery.mapper;
 
 import com.example.food.delivery.model.AssignmentEntity;
 import fd.delivery.CourierAssignedV1;

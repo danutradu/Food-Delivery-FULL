@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class NotifyListeners {
+public class NotificationListener {
 
   @KafkaListener(id="notify-order-created", topics="fd.order.created.v1", groupId="notification-service")
   public void onOrderCreated(OrderCreatedV1 e) { log.info("Notify: Order created {}", e.getOrderId()); }

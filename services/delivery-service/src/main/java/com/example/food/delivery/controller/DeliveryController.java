@@ -1,7 +1,7 @@
 package com.example.food.delivery.controller;
 
 import com.example.food.delivery.model.AssignmentEntity;
-import com.example.food.delivery.mapping.DeliveryMapper;
+import com.example.food.delivery.mapper.DeliveryMapper;
 import com.example.food.delivery.repository.AssignmentRepository;
 import fd.delivery.OrderDeliveredV1;
 import fd.delivery.OrderPickedUpV1;

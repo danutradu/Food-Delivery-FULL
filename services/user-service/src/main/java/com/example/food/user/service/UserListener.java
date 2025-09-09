@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class UserListeners {
+public class UserListener {
   private final UserProfileRepository profiles;
   private final UserProfileMapper mapper;
 

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OpsListeners {
+public class OpsListener {
   private final KitchenTicketRepository tickets;
 
   @KafkaListener(id="ops-acceptance-requests", topics="fd.restaurant.acceptance-requested.v1", groupId = "restaurant-ops-service")

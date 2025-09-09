@@ -1,7 +1,7 @@
 package com.example.food.ops.controller;
 
 import com.example.food.ops.model.KitchenTicketEntity;
-import com.example.food.ops.mapping.OpsMappers;
+import com.example.food.ops.mapper.OpsMappers;
 import com.example.food.ops.repository.KitchenTicketRepository;
 import fd.restaurant.OrderReadyForPickupV1;
 import fd.restaurant.RestaurantAcceptedV1;

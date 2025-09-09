@@ -1,4 +1,4 @@
-package com.example.food.ops.mapping;
+package com.example.food.ops.mapper;
 
 import com.example.food.ops.model.KitchenTicketEntity;
 import fd.restaurant.OrderReadyForPickupV1;

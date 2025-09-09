@@ -1,6 +1,6 @@
 package com.example.food.payment.mapping;
 
-import com.example.food.payment.domain.PaymentEntity;
+import com.example.food.payment.model.PaymentEntity;
 import fd.payment.PaymentAuthorizedV1;
 import fd.payment.PaymentRequestedV1;
 import org.mapstruct.*;

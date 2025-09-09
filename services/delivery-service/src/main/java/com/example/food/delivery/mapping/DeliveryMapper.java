@@ -1,6 +1,6 @@
 package com.example.food.delivery.mapping;
 
-import com.example.food.delivery.domain.AssignmentEntity;
+import com.example.food.delivery.model.AssignmentEntity;
 import fd.delivery.CourierAssignedV1;
 import fd.delivery.DeliveryRequestedV1;
 import fd.delivery.OrderDeliveredV1;

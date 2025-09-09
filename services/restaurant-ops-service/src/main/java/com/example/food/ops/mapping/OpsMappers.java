@@ -1,6 +1,6 @@
 package com.example.food.ops.mapping;
 
-import com.example.food.ops.domain.KitchenTicketEntity;
+import com.example.food.ops.model.KitchenTicketEntity;
 import fd.restaurant.OrderReadyForPickupV1;
 import fd.restaurant.RestaurantAcceptedV1;
 import fd.restaurant.RestaurantRejectedV1;

@@ -1,6 +1,6 @@
 package com.example.food.user.mapping;
 
-import com.example.food.user.domain.UserProfileEntity;
+import com.example.food.user.model.UserProfileEntity;
 import fd.user.UserRegisteredV1;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

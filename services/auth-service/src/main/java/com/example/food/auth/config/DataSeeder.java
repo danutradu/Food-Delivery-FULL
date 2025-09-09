@@ -1,7 +1,7 @@
 package com.example.food.auth.config;
 
-import com.example.food.auth.domain.RoleEntity;
-import com.example.food.auth.repo.RoleRepository;
+import com.example.food.auth.model.RoleEntity;
+import com.example.food.auth.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,21 +1,14 @@
 package com.example.food.auth.security;
 
-import com.example.food.auth.domain.RoleEntity;
-import com.example.food.auth.domain.UserEntity;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.food.auth.model.RoleEntity;
+import com.example.food.auth.model.UserEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.util.Base64;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @Service

@@ -1,5 +1,6 @@
 package com.example.food.order.service;
 
+import com.example.food.order.exception.OrderNotFoundException;
 import com.example.food.order.repository.OrderRepository;
 import fd.payment.PaymentAuthorizedV1;
 import fd.restaurant.RestaurantAcceptanceRequestedV1;
@@ -29,7 +30,7 @@ public class OrderSagaListener {
     log.info("KAFKA RECV topic=fd.payment.authorized.v1 orderId={}", orderId);
 
     var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+            .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
 
     RestaurantAcceptanceRequestedV1 out = new RestaurantAcceptanceRequestedV1(
         UUID.randomUUID(),
@@ -48,7 +49,8 @@ public class OrderSagaListener {
   public void onRestaurantAccepted(RestaurantAcceptedV1 evt) {
     var orderId = evt.getOrderId();
     log.info("KAFKA RECV topic=fd.restaurant.accepted.v1 orderId={}", orderId);
-    var order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+    var order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
 
     DeliveryRequestedV1 out = new DeliveryRequestedV1(
         UUID.randomUUID(),

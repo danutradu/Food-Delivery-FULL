@@ -3,6 +3,7 @@ package com.example.food.delivery.controller;
 import com.example.food.delivery.model.AssignmentEntity;
 import com.example.food.delivery.mapper.DeliveryMapper;
 import com.example.food.delivery.repository.AssignmentRepository;
+import com.example.food.delivery.service.DeliveryService;
 import fd.delivery.OrderDeliveredV1;
 import fd.delivery.OrderPickedUpV1;
 import lombok.RequiredArgsConstructor;
@@ -21,37 +22,21 @@ import java.util.UUID;
 @Slf4j
 public class DeliveryController {
 
-  private final AssignmentRepository assignments;
-  private final KafkaTemplate<String, Object> kafka;
-  private final DeliveryMapper mapper;
+  private final DeliveryService deliveryService;
 
   @PreAuthorize("hasAnyRole('COURIER','ADMIN')")
   @PostMapping("/{assignmentId}/pickup")
   public Map<String,Object> pickup(@PathVariable("assignmentId") UUID assignmentId) {
-    log.info("DeliveryPickedUp assignmentId={}", assignmentId);
-    AssignmentEntity a = assignments.findById(assignmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
-    a.setStatus("PICKED_UP");
-    assignments.save(a);
-    OrderPickedUpV1 evt = mapper.toPickedUp(a);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.delivery.picked-up.v1", a.getOrderId().toString(), evt);
-    rec.headers().add("eventType","fd.delivery.OrderPickedUpV1".getBytes());
-    kafka.send(rec);
+    // Note: This should use orderId, but keeping current logic for now
+    deliveryService.markAsPickedUp(assignmentId);
     return Map.of("status","PICKED_UP");
   }
 
   @PreAuthorize("hasAnyRole('COURIER','ADMIN')")
   @PostMapping("/{assignmentId}/delivered")
   public Map<String,Object> delivered(@PathVariable("assignmentId") UUID assignmentId) {
-    log.info("DeliveryCompleted assignmentId={}", assignmentId);
-    AssignmentEntity a = assignments.findById(assignmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
-    a.setStatus("DELIVERED");
-    assignments.save(a);
-    OrderDeliveredV1 evt = mapper.toDelivered(a);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.delivery.delivered.v1", a.getOrderId().toString(), evt);
-    rec.headers().add("eventType","fd.delivery.OrderDeliveredV1".getBytes());
-    kafka.send(rec);
+    // Note: This should use orderId, but keeping current logic for now
+    deliveryService.markAsDelivered(assignmentId);
     return Map.of("status","DELIVERED");
   }
 }

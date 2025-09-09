@@ -1,0 +1,23 @@
+package com.example.food.delivery.exception;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AssignmentNotFoundException.class)
+    public ResponseEntity<Void> handleAssignmentNotFoundException(AssignmentNotFoundException e) {
+        log.warn("Assignment not found: {}", e.getMessage());
+        return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Invalid argument: {}", e.getMessage());
+        return ResponseEntity.badRequest().build();
+    }
+}

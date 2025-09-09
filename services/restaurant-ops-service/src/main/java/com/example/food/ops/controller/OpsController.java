@@ -3,6 +3,7 @@ package com.example.food.ops.controller;
 import com.example.food.ops.model.KitchenTicketEntity;
 import com.example.food.ops.mapper.OpsMapper;
 import com.example.food.ops.repository.KitchenTicketRepository;
+import com.example.food.ops.service.OpsService;
 import fd.restaurant.OrderReadyForPickupV1;
 import fd.restaurant.RestaurantAcceptedV1;
 import fd.restaurant.RestaurantRejectedV1;
@@ -22,52 +23,29 @@ import java.util.UUID;
 @Slf4j
 public class OpsController {
 
-  private final KitchenTicketRepository tickets;
-  private final KafkaTemplate<String, Object> kafka;
-  private final OpsMapper mapper;
+    private final OpsService opsService;
 
-  @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
-  @PostMapping("/{orderId}/accept")
-  public Map<String,Object> accept(@PathVariable("orderId") UUID orderId, @RequestParam(name = "etaMinutes", defaultValue = "15") int etaMinutes) {
-    log.info("RestaurantAccepted orderId={} etaMinutes={}", orderId, etaMinutes);
-    KitchenTicketEntity t = tickets.findByOrderId(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Kitchen ticket not found for order: " + orderId));
-    t.setStatus("ACCEPTED");
-    tickets.save(t);
-    RestaurantAcceptedV1 evt = mapper.toAccepted(t, etaMinutes);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.restaurant.accepted.v1", t.getOrderId().toString(), evt);
-    rec.headers().add("eventType","fd.restaurant.RestaurantAcceptedV1".getBytes());
-    kafka.send(rec);
-    return Map.of("status","ACCEPTED");
-  }
+    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
+    @PostMapping("/{orderId}/accept")
+    public Map<String, Object> accept(@PathVariable("orderId") UUID orderId, @RequestParam(name = "etaMinutes", defaultValue = "15") int etaMinutes) {
+        // Note: This should use ticketId, but keeping curent logic for now
+        opsService.acceptOrder(orderId, etaMinutes);
+        return Map.of("status", "ACCEPTED");
+    }
 
-  @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
-  @PostMapping("/{orderId}/reject")
-  public Map<String,Object> reject(@PathVariable("orderId") UUID orderId, @RequestParam(name = "reason", defaultValue = "Out of stock") String reason) {
-    log.info("RestaurantRejected orderId={} reason={}", orderId, reason);
-    KitchenTicketEntity t = tickets.findByOrderId(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Kitchen ticket not found for order: " + orderId));
-    t.setStatus("REJECTED");
-    tickets.save(t);
-    RestaurantRejectedV1 evt = mapper.toRejected(t, reason);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.restaurant.rejected.v1", t.getOrderId().toString(), evt);
-    rec.headers().add("eventType","fd.restaurant.RestaurantRejectedV1".getBytes());
-    kafka.send(rec);
-    return Map.of("status","REJECTED");
-  }
+    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
+    @PostMapping("/{orderId}/reject")
+    public Map<String, Object> reject(@PathVariable("orderId") UUID orderId, @RequestParam(name = "reason", defaultValue = "Out of stock") String reason) {
+        // Note: This should use ticketId, but keeping current logic for now
+        opsService.rejectOrder(orderId, reason);
+        return Map.of("status", "REJECTED");
+    }
 
-  @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
-  @PostMapping("/{orderId}/ready")
-  public Map<String,Object> ready(@PathVariable("orderId") UUID orderId) {
-    log.info("RestaurantOrderReady orderId={}", orderId);
-    KitchenTicketEntity t = tickets.findByOrderId(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Kitchen ticket not found for order: " + orderId));
-    t.setStatus("READY");
-    tickets.save(t);
-    OrderReadyForPickupV1 evt = mapper.toReady(t);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.restaurant.order-ready.v1", t.getOrderId().toString(), evt);
-    rec.headers().add("eventType","fd.restaurant.OrderReadyForPickupV1".getBytes());
-    kafka.send(rec);
-    return Map.of("status","READY");
-  }
+    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
+    @PostMapping("/{orderId}/ready")
+    public Map<String, Object> ready(@PathVariable("orderId") UUID orderId) {
+        // Note: This should use ticketId, but keeping current logic for now
+        opsService.markOrderReady(orderId);
+        return Map.of("status", "READY");
+    }
 }

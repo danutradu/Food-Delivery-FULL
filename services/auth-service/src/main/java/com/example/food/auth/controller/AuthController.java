@@ -1,27 +1,17 @@
 package com.example.food.auth.controller;
 
-import com.example.food.auth.model.RoleEntity;
-import com.example.food.auth.model.UserEntity;
-import com.example.food.auth.repository.RoleRepository;
-import com.example.food.auth.repository.UserRepository;
-import com.example.food.auth.security.TokenService;
 import com.example.food.auth.dto.JwtResponse;
 import com.example.food.auth.dto.LoginRequest;
 import com.example.food.auth.dto.RegisterRequest;
-import com.example.food.auth.mapper.UserMapper;
-import fd.user.UserRegisteredV1;
+import com.example.food.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
-import java.util.Set;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,44 +19,17 @@ import java.util.Set;
 @Slf4j
 public class AuthController {
 
-  private final UserRepository users;
-  private final RoleRepository roles;
-  private final TokenService tokens;
-  private final KafkaTemplate<String, Object> kafka;
-  private final UserMapper mapper;
-  private final PasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final AuthService authService;
 
-  @PostMapping("/register")
-  public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest req) {
-    log.info("UserRegistered username={} email={}", req.username(), req.email());
-    if (users.findByUsername(req.username()).isPresent()) return ResponseEntity.badRequest().build();
-    if (users.findByEmail(req.email()).isPresent()) return ResponseEntity.badRequest().build();
+    @PostMapping("/register")
+    public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest req) {
+        var response = authService.register(req);
+        return ResponseEntity.ok(response);
+    }
 
-    RoleEntity role = roles.findByName("CUSTOMER")
-            .orElseThrow(() -> new IllegalStateException("CUSTOMER role not found in database"));
-    UserEntity u = mapper.toEntity(req, Set.of(role));
-    u.setPasswordHash(encoder.encode(req.password()));
-    users.save(u);
-
-    UserRegisteredV1 evt = mapper.toUserRegistered(u);
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.user.registered.v1", u.getId().toString(), evt);
-    rec.headers().add("eventType", "fd.user.UserRegisteredV1".getBytes());
-    kafka.send(rec);
-
-    var it = tokens.issue(u);
-    return ResponseEntity.ok(new JwtResponse(it.token(), it.expiresAtEpochSeconds(), "Bearer"));
-  }
-
-  @PostMapping("/login")
-  public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest req) {
-    log.info("UserLogin username={}", req.username());
-    Optional<UserEntity> userOpt = users.findByUsername(req.username());
-    if (userOpt.isEmpty()) return ResponseEntity.status(401).build();
-    UserEntity u = userOpt.get();
-    if (!u.isEnabled()) return ResponseEntity.status(403).build();
-    if (!encoder.matches(req.password(), u.getPasswordHash())) return ResponseEntity.status(401).build();
-
-    var it = tokens.issue(u);
-    return ResponseEntity.ok(new JwtResponse(it.token(), it.expiresAtEpochSeconds(), "Bearer"));
-  }
+    @PostMapping("/login")
+    public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest req) {
+        var response = authService.login(req);
+        return ResponseEntity.ok(response);
+    }
 }

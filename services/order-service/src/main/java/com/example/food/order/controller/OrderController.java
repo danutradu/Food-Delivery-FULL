@@ -1,6 +1,6 @@
 package com.example.food.order.controller;
 
-import com.example.food.order.service.OrderAppService;
+import com.example.food.order.service.OrderService;
 import com.example.food.order.dto.CreateOrderRequest;
 import com.example.food.order.dto.OrderResponse;
 import jakarta.validation.Valid;
@@ -18,16 +18,12 @@ import java.util.UUID;
 @Slf4j
 public class OrderController {
 
-  private final OrderAppService app;
+  private final OrderService orderService;
 
   @PreAuthorize("hasRole('CUSTOMER')")
   @PostMapping("/orders")
   public OrderResponse create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
-    log.info("OrderCreated items={} currency={}", req.items().size(), req.currency());
-    UUID userId = UUID.fromString(((Jwt)auth.getPrincipal()).getSubject());
-    UUID orderId = app.createOrder(userId, req);
-    var items = req.items().stream().map(i -> new OrderResponse.Item(i.menuItemId(), i.name(), i.unitPriceCents(), i.quantity())).toList();
-    int total = req.items().stream().mapToInt(i -> i.unitPriceCents() * i.quantity()).sum();
-    return new OrderResponse(orderId, total, req.currency(), items);
+    var userId = UUID.fromString(((Jwt)auth.getPrincipal()).getSubject());
+    return orderService.createOrderWithResponse(userId, req);
   }
 }

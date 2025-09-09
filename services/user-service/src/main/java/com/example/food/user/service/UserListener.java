@@ -13,13 +13,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class UserListener {
-  private final UserProfileRepository profiles;
-  private final UserProfileMapper mapper;
+  private UserService userService;
 
   @KafkaListener(id="user-registered", topics="fd.user.registered.v1", groupId = "user-service")
-  public void onUserRegistered(UserRegisteredV1 evt) {
-    log.info("KAFKA RECV topic=fd.user.registered.v1 userId={} username={}", evt.getUserId(), evt.getUsername());
-    UserProfileEntity p = mapper.toProfile(evt);
-    profiles.save(p);
+  public void onUserRegistered(UserRegisteredV1 event) {
+    log.info("KAFKA RECV topic=fd.user.registered.v1 userId={} username={}", event.getUserId(), event.getUsername());
+    userService.createUserProfile(event);
   }
 }

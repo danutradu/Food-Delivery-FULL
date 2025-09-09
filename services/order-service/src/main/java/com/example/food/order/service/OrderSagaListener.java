@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -25,6 +26,7 @@ public class OrderSagaListener {
   private final OrderRepository orderRepository;
 
   @KafkaListener(id="order-on-payment-auth", topics="fd.payment.authorized.v1", groupId = "order-service")
+  @Transactional(readOnly = true)
   public void onPaymentAuthorized(PaymentAuthorizedV1 evt) {
     UUID orderId = evt.getOrderId();
     log.info("KAFKA RECV topic=fd.payment.authorized.v1 orderId={}", orderId);
@@ -46,6 +48,7 @@ public class OrderSagaListener {
   }
 
   @KafkaListener(id="order-on-restaurant-accepted", topics="fd.restaurant.accepted.v1", groupId = "order-service")
+  @Transactional(readOnly = true)
   public void onRestaurantAccepted(RestaurantAcceptedV1 evt) {
     var orderId = evt.getOrderId();
     log.info("KAFKA RECV topic=fd.restaurant.accepted.v1 orderId={}", orderId);

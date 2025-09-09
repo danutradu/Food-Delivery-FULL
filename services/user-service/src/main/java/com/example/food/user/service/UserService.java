@@ -27,6 +27,7 @@ public class UserService {
         userProfiles.save(profile);
     }
 
+    @Transactional(readOnly = true)
     public UserProfileEntity getUserProfile(UUID userId) {
         return userProfiles.findById(userId)
                 .orElseThrow(() -> new UserProfileNotFoundException("User profile not found: " + userId));

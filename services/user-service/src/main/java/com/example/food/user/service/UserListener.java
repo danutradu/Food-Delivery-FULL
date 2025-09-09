@@ -1,8 +1,5 @@
 package com.example.food.user.service;
 
-import com.example.food.user.model.UserProfileEntity;
-import com.example.food.user.mapping.UserProfileMapper;
-import com.example.food.user.repository.UserProfileRepository;
 import fd.user.UserRegisteredV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +10,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class UserListener {
-  private UserService userService;
+    private final UserService userService;
 
-  @KafkaListener(id="user-registered", topics="fd.user.registered.v1", groupId = "user-service")
-  public void onUserRegistered(UserRegisteredV1 event) {
-    log.info("KAFKA RECV topic=fd.user.registered.v1 userId={} username={}", event.getUserId(), event.getUsername());
-    userService.createUserProfile(event);
-  }
+    @KafkaListener(id = "user-registered", topics = "fd.user.registered.v1", groupId = "user-service")
+    public void onUserRegistered(UserRegisteredV1 event) {
+        log.info("KAFKA RECV topic=fd.user.registered.v1 userId={} username={}", event.getUserId(), event.getUsername());
+        userService.createUserProfile(event);
+    }
 }

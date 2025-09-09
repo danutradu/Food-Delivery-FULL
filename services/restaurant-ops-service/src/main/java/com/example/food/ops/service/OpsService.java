@@ -71,4 +71,19 @@ public class OpsService {
         rec.headers().add("eventType", "fd.restaurant.OrderReadyForPickupV1".getBytes());
         kafka.send(rec);
     }
+
+    @Transactional
+    public void processAcceptanceRequest(UUID orderId, UUID restaurantId) {
+        log.info("Process acceptance request orderId={} restaurantId={}", orderId, restaurantId);
+
+        var ticket = tickets.findByOrderId(orderId).orElseGet(() -> {
+            var newTicket = new KitchenTicketEntity();
+            newTicket.setId(UUID.randomUUID());
+            newTicket.setOrderId(orderId);
+            newTicket.setRestaurantId(restaurantId);
+            newTicket.setStatus("PENDING");
+            return newTicket;
+        });
+        tickets.save(ticket);
+    }
 }

@@ -32,6 +32,9 @@ spring:
   mvc:
     log-request-details: false
 
+outbox:
+  max-retries: ${OUTBOX_MAX_RETRIES:5}
+
 management:
   endpoints:
     web:

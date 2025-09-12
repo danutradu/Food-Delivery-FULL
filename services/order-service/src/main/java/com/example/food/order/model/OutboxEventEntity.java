@@ -15,4 +15,6 @@ public class OutboxEventEntity {
   @Lob @Column(nullable=false) private String payloadJson;
   @Column(nullable=false) private Instant createdAt = Instant.now();
   @Column(nullable=false) private boolean published = false;
+  @Column(nullable = false) private int retryCount = 0;
+  private Instant lastRetryAt;
 }

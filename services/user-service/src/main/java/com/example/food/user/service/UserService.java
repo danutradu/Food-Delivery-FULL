@@ -8,7 +8,6 @@ import fd.user.UserRegisteredV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -19,7 +18,6 @@ public class UserService {
     private final UserProfileRepository userProfiles;
     private final UserProfileMapper mapper;
 
-    @Transactional
     public void createUserProfile(UserRegisteredV1 event) {
         log.info("Creating user profile for userId={} username={}", event.getUserId(), event.getUsername());
 
@@ -27,7 +25,6 @@ public class UserService {
         userProfiles.save(profile);
     }
 
-    @Transactional(readOnly = true)
     public UserProfileEntity getUserProfile(UUID userId) {
         return userProfiles.findById(userId)
                 .orElseThrow(() -> new UserProfileNotFoundException("User profile not found: " + userId));

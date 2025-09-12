@@ -14,7 +14,6 @@ public class UserListener {
 
     @KafkaListener(id = "user-registered", topics = "fd.user.registered.v1", groupId = "user-service")
     public void onUserRegistered(UserRegisteredV1 event) {
-        log.info("KAFKA RECV topic=fd.user.registered.v1 userId={} username={}", event.getUserId(), event.getUsername());
         userService.createUserProfile(event);
     }
 }

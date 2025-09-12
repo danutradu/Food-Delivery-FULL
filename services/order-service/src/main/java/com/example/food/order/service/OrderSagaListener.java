@@ -2,17 +2,17 @@ package com.example.food.order.service;
 
 import com.example.food.order.exception.OrderNotFoundException;
 import com.example.food.order.repository.OrderRepository;
+import fd.delivery.DeliveryRequestedV1;
 import fd.payment.PaymentAuthorizedV1;
 import fd.restaurant.RestaurantAcceptanceRequestedV1;
 import fd.restaurant.RestaurantAcceptedV1;
-import fd.delivery.DeliveryRequestedV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -22,48 +22,53 @@ import java.util.UUID;
 @Slf4j
 public class OrderSagaListener {
 
-  private final KafkaTemplate<String, Object> kafka;
-  private final OrderRepository orderRepository;
+    private final KafkaTemplate<String, SpecificRecord> kafka;
+    private final OrderRepository orderRepository;
 
-  @KafkaListener(id="order-on-payment-auth", topics="fd.payment.authorized.v1", groupId = "order-service")
-  @Transactional(readOnly = true)
-  public void onPaymentAuthorized(PaymentAuthorizedV1 evt) {
-    UUID orderId = evt.getOrderId();
-    log.info("KAFKA RECV topic=fd.payment.authorized.v1 orderId={}", orderId);
+    @KafkaListener(id = "order-on-payment-auth", topics = "fd.payment.authorized.v1", groupId = "order-service")
+    public void onPaymentAuthorized(PaymentAuthorizedV1 event) {
+        log.info("Payment authorized, requesting restaurant acceptance order={}", event.getOrderId());
 
-    var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+        var order = orderRepository.findById(event.getOrderId())
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
 
-    RestaurantAcceptanceRequestedV1 out = new RestaurantAcceptanceRequestedV1(
-        UUID.randomUUID(),
-        Instant.now(),
-        evt.getOrderId(),
-        order.getRestaurantId(),
-        evt.getAmountCents(),
-        evt.getCurrency()
-    );
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.restaurant.acceptance-requested.v1", evt.getOrderId().toString(), out);
-    rec.headers().add("eventType", "fd.restaurant.RestaurantAcceptanceRequestedV1".getBytes());
-    kafka.send(rec);
-  }
+        RestaurantAcceptanceRequestedV1 out = new RestaurantAcceptanceRequestedV1(
+                UUID.randomUUID(),
+                Instant.now(),
+                event.getOrderId(),
+                order.getRestaurantId(),
+                event.getAmountCents(),
+                event.getCurrency()
+        );
 
-  @KafkaListener(id="order-on-restaurant-accepted", topics="fd.restaurant.accepted.v1", groupId = "order-service")
-  @Transactional(readOnly = true)
-  public void onRestaurantAccepted(RestaurantAcceptedV1 evt) {
-    var orderId = evt.getOrderId();
-    log.info("KAFKA RECV topic=fd.restaurant.accepted.v1 orderId={}", orderId);
-    var order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.acceptance-requested.v1", event.getOrderId().toString(), out);
+        rec.headers().add("eventType", "fd.restaurant.RestaurantAcceptanceRequestedV1".getBytes());
+        rec.headers().add("eventType", event.getEventId().toString().getBytes());
 
-    DeliveryRequestedV1 out = new DeliveryRequestedV1(
-        UUID.randomUUID(),
-        Instant.now(),
-        evt.getOrderId(),
-        evt.getRestaurantId(),
-        order.getCustomerUserId()
-    );
-    ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.delivery.requested.v1", evt.getOrderId().toString(), out);
-    rec.headers().add("eventType", "fd.delivery.DeliveryRequestedV1".getBytes());
-    kafka.send(rec);
-  }
+        kafka.send(rec);
+        log.info("Sending restaurant acceptance requested event orderId={}", event.getOrderId());
+    }
+
+    @KafkaListener(id = "order-on-restaurant-accepted", topics = "fd.restaurant.accepted.v1", groupId = "order-service")
+    public void onRestaurantAccepted(RestaurantAcceptedV1 event) {
+        log.info("Restaurant accepted, requesting delivery orderId={}", event.getOrderId());
+        var order = orderRepository.findById(event.getOrderId())
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+
+        DeliveryRequestedV1 out = new DeliveryRequestedV1(
+                UUID.randomUUID(),
+                Instant.now(),
+                event.getOrderId(),
+                event.getRestaurantId(),
+                order.getCustomerUserId()
+        );
+
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.delivery.requested.v1", event.getOrderId().toString(), out);
+        rec.headers().add("eventType", "fd.delivery.DeliveryRequestedV1".getBytes());
+        rec.headers().add("eventType", event.getEventId().toString().getBytes());
+
+        kafka.send(rec);
+        log.info("Sending delivery requested event orderId={}", event.getOrderId());
+
+    }
 }

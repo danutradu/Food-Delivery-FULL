@@ -15,7 +15,6 @@ public class DeliveryListener {
 
     @KafkaListener(id = "delivery-requests", topics = "fd.delivery.requested.v1", groupId = "delivery-service")
     public void onDeliveryRequested(DeliveryRequestedV1 event) {
-        log.info("KAFKA RECV topic=fd.delivery.requested.v1 orderId={} restaurantId={}", event.getOrderId(), event.getRestaurantId());
         deliveryService.processDeliveryRequest(event);
     }
 }

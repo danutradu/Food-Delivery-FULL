@@ -1,16 +1,8 @@
 package com.example.food.ops.controller;
 
-import com.example.food.ops.model.KitchenTicketEntity;
-import com.example.food.ops.mapper.OpsMapper;
-import com.example.food.ops.repository.KitchenTicketRepository;
 import com.example.food.ops.service.OpsService;
-import fd.restaurant.OrderReadyForPickupV1;
-import fd.restaurant.RestaurantAcceptedV1;
-import fd.restaurant.RestaurantRejectedV1;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

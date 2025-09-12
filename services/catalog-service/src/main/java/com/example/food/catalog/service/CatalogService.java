@@ -9,10 +9,10 @@ import com.example.food.catalog.repository.MenuItemRepository;
 import com.example.food.catalog.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -23,10 +23,9 @@ public class CatalogService {
 
     private final RestaurantRepository restaurants;
     private final MenuItemRepository menuItems;
-    private final KafkaTemplate<String, Object> kafka;
+    private final KafkaTemplate<String, SpecificRecord> kafka;
     private final CatalogMapper mapper;
 
-    @Transactional
     public RestaurantEntity createRestaurant(RestaurantUpsert req) {
         log.info("RestaurantCreated name={} ownerUserId={}", req.name(), req.ownerUserId());
 
@@ -34,14 +33,16 @@ public class CatalogService {
         restaurants.save(restaurant);
 
         var event = mapper.toRestaurantCreated(restaurant);
-        ProducerRecord<String, Object> rec = new ProducerRecord<>("fd.catalog.restaurant.created.v1", restaurant.getId().toString(), event);
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.catalog.restaurant.created.v1", restaurant.getId().toString(), event);
         rec.headers().add("eventType", "fd.catalog.RestaurantCreatedV1".getBytes());
+        rec.headers().add("eventId", event.getEventId().toString().getBytes());
+
         kafka.send(rec);
+        log.info("Published restaurant created event restaurantId={}", restaurant.getId());
 
         return restaurant;
     }
 
-    @Transactional
     public MenuItemEntity upsertMenuItem(UUID restaurantId, MenuItemUpsert req) {
         log.info("MenuItemUpsert restaurantId={} name={}", restaurantId, req.name());
 
@@ -50,9 +51,12 @@ public class CatalogService {
         menuItems.save(menuItem);
 
         var event = mapper.toMenuItemUpdated(menuItem);
-        ProducerRecord<String, Object> rec = new ProducerRecord<>("fd.catalog.menu-item.updated.v1", menuItem.getId().toString(), event);
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.catalog.menu-item.updated.v1", menuItem.getId().toString(), event);
         rec.headers().add("eventType", "fd.catalog.MenuItemUpdatedV1".getBytes());
+        rec.headers().add("eventId", event.getEventId().toString().getBytes());
+
         kafka.send(rec);
+        log.info("Published menu item updated event menuItemId={}", menuItem.getId());
 
         return menuItem;
     }

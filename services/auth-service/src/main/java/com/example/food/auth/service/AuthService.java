@@ -12,6 +12,7 @@ import com.example.food.auth.repository.UserRepository;
 import com.example.food.auth.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,7 @@ public class AuthService {
     private final UserRepository users;
     private final RoleRepository roles;
     private final TokenService tokens;
-    private final KafkaTemplate<String, Object> kafka;
+    private final KafkaTemplate<String, SpecificRecord> kafka;
     private final UserMapper mapper;
     private final PasswordEncoder encoder;
 
@@ -51,9 +52,12 @@ public class AuthService {
         users.save(user);
 
         var event = mapper.toUserRegistered(user);
-        ProducerRecord<String, Object> record = new ProducerRecord<>("fd.user.registered.v1", user.getId().toString(), event);
+        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.user.registered.v1", user.getId().toString(), event);
         record.headers().add("eventType", "fd.user.UserRegisteredV1".getBytes());
+        record.headers().add("eventId", event.getEventId().toString().getBytes());
+
         kafka.send(record);
+        log.info("Published user registered event userId={}", user.getId());
 
         var issuedToken = tokens.issue(user);
         return new JwtResponse(issuedToken.token(), issuedToken.expiresAtEpochSeconds(), "Bearer");

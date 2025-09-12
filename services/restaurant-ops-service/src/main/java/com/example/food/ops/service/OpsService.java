@@ -4,15 +4,12 @@ import com.example.food.ops.exception.KitchenTicketNotFoundException;
 import com.example.food.ops.mapper.OpsMapper;
 import com.example.food.ops.model.KitchenTicketEntity;
 import com.example.food.ops.repository.KitchenTicketRepository;
-import fd.restaurant.OrderReadyForPickupV1;
-import fd.restaurant.RestaurantAcceptedV1;
-import fd.restaurant.RestaurantRejectedV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -21,10 +18,9 @@ import java.util.UUID;
 @Slf4j
 public class OpsService {
     private final KitchenTicketRepository tickets;
-    private final KafkaTemplate<String, Object> kafka;
+    private final KafkaTemplate<String, SpecificRecord> kafka;
     private final OpsMapper mapper;
 
-    @Transactional
     public void acceptOrder(UUID orderId, int etaMinutes) {
         log.info("Accepting order orderId={} etaMinutes={}", orderId, etaMinutes);
 
@@ -35,12 +31,14 @@ public class OpsService {
         tickets.save(ticket);
 
         var event = mapper.toAccepted(ticket, etaMinutes);
-        ProducerRecord<String,Object> rec = new ProducerRecord<>("fd.restaurant.accepted.v1", ticket.getOrderId().toString(), event);
-        rec.headers().add("eventType","fd.restaurant.RestaurantAcceptedV1".getBytes());
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.accepted.v1", ticket.getOrderId().toString(), event);
+        rec.headers().add("eventType", "fd.restaurant.RestaurantAcceptedV1".getBytes());
+        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
+
         kafka.send(rec);
+        log.info("Published restaurant accepted event orderId={}", orderId);
     }
 
-    @Transactional
     public void rejectOrder(UUID orderId, String reason) {
         log.info("Rejection order orderId={} reason={}", orderId, reason);
 
@@ -51,12 +49,14 @@ public class OpsService {
         tickets.save(ticket);
 
         var event = mapper.toRejected(ticket, reason);
-        ProducerRecord<String, Object> rec = new ProducerRecord<>("fd.restaurant.rejected.v1", ticket.getOrderId().toString(), event);
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.rejected.v1", ticket.getOrderId().toString(), event);
         rec.headers().add("eventType", "fd.restaurant.RestaurantRejectedV1".getBytes());
+        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
+
         kafka.send(rec);
+        log.info("Published restaurant rejected event orderId={}", orderId);
     }
 
-    @Transactional
     public void markOrderReady(UUID orderId) {
         log.info("Marking order ready orderId={}", orderId);
 
@@ -67,12 +67,14 @@ public class OpsService {
         tickets.save(ticket);
 
         var event = mapper.toReady(ticket);
-        ProducerRecord<String, Object> rec = new ProducerRecord<>("fd.restaurant.order-ready.v1", ticket.getOrderId().toString(), event);
+        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.order-ready.v1", ticket.getOrderId().toString(), event);
         rec.headers().add("eventType", "fd.restaurant.OrderReadyForPickupV1".getBytes());
+        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
+
         kafka.send(rec);
+        log.info("Published order ready event orderId={}", orderId);
     }
 
-    @Transactional
     public void processAcceptanceRequest(UUID orderId, UUID restaurantId) {
         log.info("Process acceptance request orderId={} restaurantId={}", orderId, restaurantId);
 

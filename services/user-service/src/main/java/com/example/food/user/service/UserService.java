@@ -21,6 +21,12 @@ public class UserService {
     public void createUserProfile(UserRegisteredV1 event) {
         log.info("Creating user profile for userId={} username={}", event.getUserId(), event.getUsername());
 
+        var existing = userProfiles.findById(event.getUserId());
+        if(existing.isPresent()) {
+            log.debug("User profile already exists userId={}", event.getUserId());
+            return; // Idempotent - skip duplicate
+        }
+
         var profile = mapper.toProfile(event);
         userProfiles.save(profile);
     }

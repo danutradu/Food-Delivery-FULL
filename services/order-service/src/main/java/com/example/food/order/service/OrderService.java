@@ -4,6 +4,7 @@ import com.example.food.order.dto.CreateOrderRequest;
 import com.example.food.order.dto.OrderResponse;
 import com.example.food.order.mapper.OrderEventMapper;
 import com.example.food.order.mapper.OrderMapper;
+import com.example.food.order.model.OrderStatus;
 import com.example.food.order.model.OutboxEventEntity;
 import com.example.food.order.repository.OrderRepository;
 import com.example.food.order.repository.OutboxRepository;
@@ -28,10 +29,11 @@ public class OrderService {
     private final ObjectMapper om;
 
     @Transactional
-    public UUID createOrder(UUID customerUserId, CreateOrderRequest req) {
+    public OrderResponse createOrder(UUID customerUserId, CreateOrderRequest req) {
         log.info("Creating order customerUserId={} items={} currency={}", customerUserId, req.items().size(), req.currency());
 
         var order = orderMapper.toEntity(req, customerUserId);
+        order.setStatus(OrderStatus.PENDING);
         orders.save(order);
 
         stageOutbox("fd.order.created.v1", "fd.order.OrderCreatedV1",
@@ -40,7 +42,10 @@ public class OrderService {
                 order.getId().toString(), toJson(eventMapper.toPaymentRequested(order)));
 
         log.info("Order created successfully orderId={}", order.getId());
-        return order.getId();
+
+        var items = req.items().stream().map(i -> new OrderResponse.Item(i.menuItemId(), i.name(), i.unitPriceCents(), i.quantity())).toList();
+        var total = calculateTotal(req);
+        return new OrderResponse(order.getId(), total, req.currency(), order.getStatus(), items);
     }
 
     private void stageOutbox(String topic, String eventType, String key, String payloadJson) {
@@ -61,13 +66,6 @@ public class OrderService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public OrderResponse createOrderWithResponse(UUID customerUserId, CreateOrderRequest req) {
-        var orderId = createOrder(customerUserId, req);
-        var items = req.items().stream().map(i -> new OrderResponse.Item(i.menuItemId(), i.name(), i.unitPriceCents(), i.quantity())).toList();
-        var total = calculateTotal(req);
-        return new OrderResponse(orderId, total, req.currency(), items);
     }
 
     public int calculateTotal(CreateOrderRequest req) {

@@ -11,4 +11,5 @@ public class TopicsConfig {
   @Bean public NewTopic paymentRequested() { return TopicBuilder.name("fd.payment.requested.v1").partitions(3).replicas(1).build(); }
   @Bean public NewTopic restaurantAcceptanceRequested() { return TopicBuilder.name("fd.restaurant.acceptance-requested.v1").partitions(3).replicas(1).build(); }
   @Bean public NewTopic deliveryRequested() { return TopicBuilder.name("fd.delivery.requested.v1").partitions(3).replicas(1).build(); }
+  @Bean public NewTopic paymentFailed() { return TopicBuilder.name("fd.payment.failed.v1").partitions(3).replicas(1).build(); }
 }

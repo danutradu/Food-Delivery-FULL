@@ -24,6 +24,6 @@ public class OrderController {
   @PostMapping("/orders")
   public OrderResponse create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
     var userId = UUID.fromString(((Jwt)auth.getPrincipal()).getSubject());
-    return orderService.createOrderWithResponse(userId, req);
+    return orderService.createOrder(userId, req);
   }
 }

@@ -17,6 +17,8 @@ public class OrderEntity {
   @Column(nullable=false) private UUID restaurantId;
   @Column(nullable=false) private int totalCents;
   @Column(nullable=false) private String currency;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false) private OrderStatus status = OrderStatus.PENDING;
   @Column(nullable=false) private Instant createdAt = Instant.now();
   @OneToMany(mappedBy="order", cascade=CascadeType.ALL, orphanRemoval = true, fetch=FetchType.LAZY)
   private List<OrderItemEntity> items = new ArrayList<>();

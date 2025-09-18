@@ -1,0 +1,14 @@
+package com.example.food.order.model;
+
+public enum OrderStatus {
+    PENDING,
+    PAYMENT_FAILED,
+    PAYMENT_AUTHORIZED,
+    PROCESSING_FAILED,
+    RESTAURANT_ACCEPTED,
+    RESTAURANT_REJECTED,
+    READY_FOR_PICKUP,
+    OUT_FOR_DELIVERY,
+    DELIVERED,
+    CANCELLED
+}

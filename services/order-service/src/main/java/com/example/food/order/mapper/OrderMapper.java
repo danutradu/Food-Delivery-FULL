@@ -15,6 +15,7 @@ public interface OrderMapper {
   @Mapping(target="customerUserId", source="customerUserId")
   @Mapping(target="restaurantId", source="req.restaurantId")
   @Mapping(target="currency", source="req.currency")
+  @Mapping(target = "status", ignore = true)
   @Mapping(target="createdAt", expression="java(Instant.now())")
   @Mapping(target="items", source="req.items")
   @Mapping(target="totalCents", ignore = true)

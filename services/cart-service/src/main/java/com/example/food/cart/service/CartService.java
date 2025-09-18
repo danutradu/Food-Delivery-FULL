@@ -45,11 +45,16 @@ public class CartService {
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + cartId));
 
         var event = mapper.toCheckedOut(cart);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.cart.checked-out.v1", cart.getId().toString(), event);
-        rec.headers().add("eventType", "fd.cart.CartCheckedOutV1".getBytes());
-        rec.headers().add("eventId", event.getEventId().toString().getBytes());
+        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.cart.checked-out.v1", cart.getId().toString(), event);
+        record.headers().add("eventType", "fd.cart.CartCheckedOutV1".getBytes());
+        record.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published cart checked out event cartId={}", cartId);
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish cart checked out event cartId={}", cartId, ex);
+            } else {
+                log.info("Published cart checked out event cartId={}", cartId);
+            }
+        });
     }
 }

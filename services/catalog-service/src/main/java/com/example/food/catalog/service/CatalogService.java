@@ -37,8 +37,13 @@ public class CatalogService {
         rec.headers().add("eventType", "fd.catalog.RestaurantCreatedV1".getBytes());
         rec.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published restaurant created event restaurantId={}", restaurant.getId());
+        kafka.send(rec).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish restaurant created event restaurantId={}", restaurant.getId(), ex);
+            } else {
+                log.info("Published restaurant created event restaurantId={}", restaurant.getId());
+            }
+        });
 
         return restaurant;
     }
@@ -51,12 +56,17 @@ public class CatalogService {
         menuItems.save(menuItem);
 
         var event = mapper.toMenuItemUpdated(menuItem);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.catalog.menu-item.updated.v1", menuItem.getId().toString(), event);
-        rec.headers().add("eventType", "fd.catalog.MenuItemUpdatedV1".getBytes());
-        rec.headers().add("eventId", event.getEventId().toString().getBytes());
+        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.catalog.menu-item.updated.v1", menuItem.getId().toString(), event);
+        record.headers().add("eventType", "fd.catalog.MenuItemUpdatedV1".getBytes());
+        record.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published menu item updated event menuItemId={}", menuItem.getId());
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish menu item updated event menuItemId={}", menuItem.getId(), ex);
+            } else {
+                log.info("Published menu item updated event menuItemId={}", menuItem.getId());
+            }
+        });
 
         return menuItem;
     }

@@ -36,7 +36,12 @@ public class PaymentService {
         record.headers().add("eventType", "fd.payment.PaymentAuthorizedV1".getBytes());
         record.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(record);
-        log.info("Published payment authorized event orderId={}", event.getOrderId());
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish payment authorized event orderId={}", payment.getOrderId(), ex);
+            } else {
+                log.info("Published payment authorized event orderId={}", payment.getOrderId());
+            }
+        });
     }
 }

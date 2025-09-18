@@ -35,8 +35,13 @@ public class OpsService {
         rec.headers().add("eventType", "fd.restaurant.RestaurantAcceptedV1".getBytes());
         rec.headers().add("eventId", event.getOrderId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published restaurant accepted event orderId={}", orderId);
+        kafka.send(rec).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish restaurant accepted event orderId={}", orderId, ex);
+            } else {
+                log.info("Published restaurant accepted event orderId={}", orderId);
+            }
+        });
     }
 
     public void rejectOrder(UUID orderId, String reason) {
@@ -53,8 +58,13 @@ public class OpsService {
         rec.headers().add("eventType", "fd.restaurant.RestaurantRejectedV1".getBytes());
         rec.headers().add("eventId", event.getOrderId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published restaurant rejected event orderId={}", orderId);
+        kafka.send(rec).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish restaurant rejected event orderId={}", orderId, ex);
+            } else {
+                log.info("Published restaurant rejected event orderId={}", orderId);
+            }
+        });
     }
 
     public void markOrderReady(UUID orderId) {
@@ -67,12 +77,17 @@ public class OpsService {
         tickets.save(ticket);
 
         var event = mapper.toReady(ticket);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.order-ready.v1", ticket.getOrderId().toString(), event);
-        rec.headers().add("eventType", "fd.restaurant.OrderReadyForPickupV1".getBytes());
-        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
+        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.restaurant.order-ready.v1", ticket.getOrderId().toString(), event);
+        record.headers().add("eventType", "fd.restaurant.OrderReadyForPickupV1".getBytes());
+        record.headers().add("eventId", event.getOrderId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published order ready event orderId={}", orderId);
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish order ready event orderId={}", orderId, ex);
+            } else {
+                log.info("Published order ready event orderId={}", orderId);
+            }
+        });
     }
 
     public void processAcceptanceRequest(UUID orderId, UUID restaurantId) {

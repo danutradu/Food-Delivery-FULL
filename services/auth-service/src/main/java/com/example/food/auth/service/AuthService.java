@@ -56,8 +56,13 @@ public class AuthService {
         record.headers().add("eventType", "fd.user.UserRegisteredV1".getBytes());
         record.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(record);
-        log.info("Published user registered event userId={}", user.getId());
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish user registered event userId={}", user.getId(), ex);
+            } else {
+                log.info("Published user registered event userId={}", user.getId());
+            }
+        });
 
         var issuedToken = tokens.issue(user);
         return new JwtResponse(issuedToken.token(), issuedToken.expiresAtEpochSeconds(), "Bearer");

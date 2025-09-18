@@ -35,8 +35,13 @@ public class DeliveryService {
         rec.headers().add("eventType", "fd.delivery.OrderPickedUpV1".getBytes());
         rec.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published order picked up event orderId={}", assignment.getOrderId());
+        kafka.send(rec).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish order picked up event orderId={}", assignment.getOrderId(), ex);
+            } else {
+                log.info("Published order picked up event orderId={}", assignment.getOrderId());
+            }
+        });
     }
 
     public void markAsDelivered(UUID assignmentId) {
@@ -53,8 +58,13 @@ public class DeliveryService {
         rec.headers().add("eventType", "fd.delivery.OrderDeliveredV1".getBytes());
         rec.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published order delivered event orderId={}", assignment.getOrderId());
+        kafka.send(rec).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish order delivered event orderId={}", assignment.getOrderId(), ex);
+            } else {
+                log.info("Published order delivered event orderId={}", assignment.getOrderId());
+            }
+        });
     }
 
     public void processDeliveryRequest(DeliveryRequestedV1 event) {
@@ -65,11 +75,16 @@ public class DeliveryService {
         assignments.save(assignment);
 
         var assignedEvent = mapper.toAssigned(assignment);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.delivery.courier-assigned.v1", event.getOrderId().toString(), assignedEvent);
-        rec.headers().add("eventType", "fd.delivery.CourierAssignedV1".getBytes());
-        rec.headers().add("eventId", event.getEventId().toString().getBytes());
+        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.delivery.courier-assigned.v1", event.getOrderId().toString(), assignedEvent);
+        record.headers().add("eventType", "fd.delivery.CourierAssignedV1".getBytes());
+        record.headers().add("eventId", event.getEventId().toString().getBytes());
 
-        kafka.send(rec);
-        log.info("Published courier assigned event orderId={}", assignment.getOrderId());
+        kafka.send(record).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish courier assigned event orderId={}", assignment.getOrderId(), ex);
+            } else {
+                log.info("Published courier assigned event orderId={}", assignment.getOrderId());
+            }
+        });
     }
 }

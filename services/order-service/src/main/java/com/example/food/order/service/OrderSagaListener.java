@@ -11,7 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -25,9 +28,15 @@ public class OrderSagaListener {
     private final KafkaTemplate<String, SpecificRecord> kafka;
     private final OrderRepository orderRepository;
 
+    @RetryableTopic(
+            attempts = "${kafka.retry.attempts}",
+            backoff = @Backoff(delayExpression = "${kafka.retry.delay}", multiplierExpression = "${kafka.retry.multiplier}", maxDelayExpression = "${kafka.retry.max-delay}"),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR,
+            include = {Exception.class}
+    )
     @KafkaListener(id = "order-on-payment-auth", topics = "fd.payment.authorized.v1", groupId = "order-service")
     public void onPaymentAuthorized(PaymentAuthorizedV1 event) {
-        log.info("Payment authorized, requesting restaurant acceptance order={}", event.getOrderId());
+        log.info("Payment authorized, requesting restaurant acceptance orderId={}", event.getOrderId());
 
         var order = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
@@ -49,6 +58,12 @@ public class OrderSagaListener {
         log.info("Sending restaurant acceptance requested event orderId={}", event.getOrderId());
     }
 
+    @RetryableTopic(
+            attempts = "${kafka.retry.attempts}",
+            backoff = @Backoff(delayExpression = "${kafka.retry.delay}", multiplierExpression = "${kafka.retry.multiplier}", maxDelayExpression = "${kafka.retry.max-delay}"),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR,
+            include = {Exception.class}
+    )
     @KafkaListener(id = "order-on-restaurant-accepted", topics = "fd.restaurant.accepted.v1", groupId = "order-service")
     public void onRestaurantAccepted(RestaurantAcceptedV1 event) {
         log.info("Restaurant accepted, requesting delivery orderId={}", event.getOrderId());

@@ -66,6 +66,14 @@ management:
       exposure:
         include: health,info
 
+#Kafka retry configuration
+kafka:
+  retry:
+    attempts: ${KAFKA_RETRY_ATTEMPTS:3}
+    delay: ${KAFKA_RETRY_DELAY:1000}
+    multiplier: ${KAFKA_RETRY_MULTIPLIER:2.0}
+    max-delay: ${KAFKA_RETRY_MAX_DELAY:10000}
+
 security:
   jwt:
     jwks-uri: ${JWT_JWKS_URI:http://localhost:8082/.well-known/jwks.json}

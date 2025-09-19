@@ -25,7 +25,7 @@ public class OpsService {
         log.info("Accepting order orderId={} etaMinutes={}", orderId, etaMinutes);
 
         var ticket = tickets.findByOrderId(orderId)
-                .orElseThrow(() -> new KitchenTicketNotFoundException("Kitchen ticket not found for order: " + orderId));
+                .orElseThrow(() -> new KitchenTicketNotFoundException(orderId.toString()));
 
         ticket.setStatus("ACCEPTED");
         tickets.save(ticket);
@@ -48,7 +48,7 @@ public class OpsService {
         log.info("Rejection order orderId={} reason={}", orderId, reason);
 
         var ticket = tickets.findByOrderId(orderId)
-                .orElseThrow(() -> new KitchenTicketNotFoundException("Kitchen ticket not found for order: " + orderId));
+                .orElseThrow(() -> new KitchenTicketNotFoundException(orderId.toString()));
 
         ticket.setStatus("REJECTED");
         tickets.save(ticket);
@@ -71,7 +71,7 @@ public class OpsService {
         log.info("Marking order ready orderId={}", orderId);
 
         var ticket = tickets.findByOrderId(orderId)
-                .orElseThrow(() -> new KitchenTicketNotFoundException("Kitchen ticket not found for order: " + orderId));
+                .orElseThrow(() -> new KitchenTicketNotFoundException(orderId.toString()));
 
         ticket.setStatus("READY");
         tickets.save(ticket);

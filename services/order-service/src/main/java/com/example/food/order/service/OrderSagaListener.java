@@ -44,7 +44,7 @@ public class OrderSagaListener {
         log.info("Payment authorized, requesting restaurant acceptance orderId={}", event.getOrderId());
 
         var order = orderRepository.findById(event.getOrderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+                .orElseThrow(() -> new OrderNotFoundException(event.getOrderId().toString()));
 
         RestaurantAcceptanceRequestedV1 out = new RestaurantAcceptanceRequestedV1(
                 UUID.randomUUID(),
@@ -86,7 +86,7 @@ public class OrderSagaListener {
     public void onRestaurantAccepted(RestaurantAcceptedV1 event) {
         log.info("Restaurant accepted, requesting delivery orderId={}", event.getOrderId());
         var order = orderRepository.findById(event.getOrderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+                .orElseThrow(() -> new OrderNotFoundException(event.getOrderId().toString()));
 
         DeliveryRequestedV1 out = new DeliveryRequestedV1(
                 UUID.randomUUID(),
@@ -128,7 +128,7 @@ public class OrderSagaListener {
         log.info("Payment failed, cancelling order orderId={} reason={}", event.getOrderId(), event.getFailureReason());
 
         var order = orderRepository.findById(event.getOrderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+                .orElseThrow(() -> new OrderNotFoundException(event.getOrderId().toString()));
 
         order.setStatus(OrderStatus.PAYMENT_FAILED);
         orderRepository.save(order);
@@ -143,7 +143,7 @@ public class OrderSagaListener {
         log.error("Payment authorized event failed after all retries, marking order as failed orderId={} topic={}", event.getOrderId(), topic);
 
         var order = orderRepository.findById(event.getOrderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+                .orElseThrow(() -> new OrderNotFoundException(event.getOrderId().toString()));
 
         order.setStatus(OrderStatus.PROCESSING_FAILED);
         orderRepository.save(order);
@@ -157,7 +157,7 @@ public class OrderSagaListener {
         log.error("Restaurant Accepted event failed after all retries, marking order as failed orderId={} topic={}", event.getOrderId(), topic);
 
         var order = orderRepository.findById(event.getOrderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + event.getOrderId()));
+                .orElseThrow(() -> new OrderNotFoundException(event.getOrderId().toString()));
 
         order.setStatus(OrderStatus.PROCESSING_FAILED);
         orderRepository.save(order);

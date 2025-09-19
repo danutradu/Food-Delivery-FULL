@@ -25,7 +25,7 @@ public class DeliveryService {
         log.info("Marking assignment as picked up assignmentId={}", assignmentId);
 
         var assignment = assignments.findById(assignmentId)
-                .orElseThrow(() -> new AssignmentNotFoundException("Assignment not found: " + assignmentId));
+                .orElseThrow(() -> new AssignmentNotFoundException(assignmentId.toString()));
 
         assignment.setStatus("PICKED_UP");
         assignments.save(assignment);
@@ -48,7 +48,7 @@ public class DeliveryService {
         log.info("Marking assignment as delivered assignmentId={}", assignmentId);
 
         var assignment = assignments.findById(assignmentId)
-                .orElseThrow(() -> new AssignmentNotFoundException("Assignment not found: " + assignmentId));
+                .orElseThrow(() -> new AssignmentNotFoundException(assignmentId.toString()));
 
         assignment.setStatus("DELIVERED");
         assignments.save(assignment);

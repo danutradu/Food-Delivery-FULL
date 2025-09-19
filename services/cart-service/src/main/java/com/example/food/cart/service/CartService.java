@@ -1,6 +1,7 @@
 package com.example.food.cart.service;
 
 import com.example.food.cart.dto.AddItemRequest;
+import com.example.food.cart.exception.CartNotFoundException;
 import com.example.food.cart.mapper.CartMapper;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.repository.CartRepository;
@@ -42,7 +43,7 @@ public class CartService {
         log.info("CartCheckedOut cartId={}", cartId);
 
         var cart = carts.findById(cartId)
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found: " + cartId));
+                .orElseThrow(() -> new CartNotFoundException(cartId.toString()));
 
         var event = mapper.toCheckedOut(cart);
         ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.cart.checked-out.v1", cart.getId().toString(), event);

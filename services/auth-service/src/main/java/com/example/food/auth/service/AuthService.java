@@ -38,10 +38,10 @@ public class AuthService {
         log.info("UserRegistered username = {} email = {}", req.username(), req.email());
 
         if (users.findByUsername(req.username()).isPresent()) {
-            throw new UserAlreadyExistsException("Username already exists");
+            throw new UserAlreadyExistsException(req.username());
         }
         if (users.findByEmail(req.email()).isPresent()) {
-            throw new UserAlreadyExistsException("Email already exists");
+            throw new UserAlreadyExistsException(req.email());
         }
 
         var role = roles.findByName("CUSTOMER")
@@ -75,11 +75,11 @@ public class AuthService {
                 .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
 
         if (!user.isEnabled()) {
-            throw new AccountDisabledException("Account is disabled");
+            throw new AccountDisabledException(user.getUsername());
         }
 
         if (!encoder.matches(req.password(), user.getPasswordHash())) {
-            throw new AuthenticationException("Invalid credentials");
+            throw new AuthenticationException(user.getUsername());
         }
 
         var issuedToken = tokens.issue(user);

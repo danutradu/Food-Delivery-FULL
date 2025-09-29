@@ -61,6 +61,24 @@ security:
   jwt:
     jwks-uri: ${JWT_JWKS_URI:http://localhost:8082/.well-known/jwks.json}
 
+#Kafka configuration
+kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:notification-service}
+  topics:
+    order-created: ${KAFKA_TOPIC_ORDER_CREATED:fd.order.created.v1}
+    payment-authorized: ${KAFKA_TOPIC_PAYMENT_AUTHORIZED:fd.payment.authorized.v1}
+    restaurant-accepted: ${KAFKA_TOPIC_RESTAURANT_ACCEPTED:fd.restaurant.accepted.v1}
+    restaurant-rejected: ${KAFKA_TOPIC_RESTAURANT_REJECTED:fd.restaurant.rejected.v1}
+    courier-assigned: ${KAFKA_TOPIC_COURIER_ASSIGNED:fd.delivery.courier-assigned.v1}
+    order-picked-up: ${KAFKA_TOPIC_ORDER_PICKED_UP:fd.delivery.picked-up.v1}
+    order-delivered: ${KAFKA_TOPIC_ORDER_DELIVERED:fd.delivery.delivered.v1}
+    order-cancelled: ${KAFKA_TOPIC_ORDER_CANCELLED:fd.order.cancelled.v1}
+    payment-failed: ${KAFKA_TOPIC_PAYMENT_FAILED:fd.payment.failed.v1}
+    refund-completed: ${KAFKA_TOPIC_REFUND_COMPLETED:fd.payment.refund-completed.v1}
+    fee-charged: ${KAFKA_TOPIC_FEE_CHARGED:fd.payment.fee-charged.v1}
+    fee-failed: ${KAFKA_TOPIC_FEE_FAILED:fd.payment.fee-failed.v1}
+
 logging:
   level:
     root: INFO

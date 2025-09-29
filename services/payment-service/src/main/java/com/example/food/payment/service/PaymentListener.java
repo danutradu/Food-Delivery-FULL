@@ -1,29 +1,34 @@
 package com.example.food.payment.service;
 
+import com.example.food.payment.config.StandardRetryableTopic;
+import fd.payment.FeeRequestedV1;
 import fd.payment.PaymentRequestedV1;
+import fd.payment.RefundRequestedV1;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.RetryableTopic;
-import org.springframework.kafka.retrytopic.DltStrategy;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class PaymentListener {
 
     private final PaymentService paymentService;
 
-    @RetryableTopic(
-            attempts = "${kafka.retry.attempts}",
-            backoff = @Backoff(delayExpression = "${kafka.retry.delay}", multiplierExpression = "${kafka.retry.multiplier}", maxDelayExpression = "${kafka.retry.max-delay}"),
-            dltStrategy = DltStrategy.FAIL_ON_ERROR,
-            include = {Exception.class}
-    )
-    @KafkaListener(id = "payment-requests", topics = "fd.payment.requested.v1", groupId = "payment-service")
+    @StandardRetryableTopic
+    @KafkaListener(topics = "${kafka.topics.payment-requested}", groupId = "${kafka.consumer.group-id}")
     public void onPaymentRequested(PaymentRequestedV1 event) {
         paymentService.processPaymentRequest(event);
+    }
+
+    @StandardRetryableTopic
+    @KafkaListener(topics = "${kafka.topics.refund-requested}", groupId = "${kafka.consumer.group-id}")
+    public void onRefundRequested(RefundRequestedV1 event) {
+        paymentService.processRefundRequest(event);
+    }
+
+    @StandardRetryableTopic
+    @KafkaListener(topics = "${kafka.topics.fee-requested}", groupId = "${kafka.consumer.group-id}")
+    public void onFeeRequested(FeeRequestedV1 event) {
+        paymentService.processFeeRequest(event);
     }
 }

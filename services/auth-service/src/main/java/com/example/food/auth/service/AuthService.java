@@ -1,20 +1,19 @@
 package com.example.food.auth.service;
 
+import com.example.food.auth.config.KafkaTopics;
 import com.example.food.auth.dto.JwtResponse;
 import com.example.food.auth.dto.LoginRequest;
 import com.example.food.auth.dto.RegisterRequest;
 import com.example.food.auth.exception.AccountDisabledException;
 import com.example.food.auth.exception.AuthenticationException;
 import com.example.food.auth.exception.UserAlreadyExistsException;
-import com.example.food.auth.mapper.UserMapper;
 import com.example.food.auth.repository.RoleRepository;
 import com.example.food.auth.repository.UserRepository;
 import com.example.food.auth.security.TokenService;
+import com.example.food.auth.util.UserFactory;
+import com.example.food.common.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,52 +25,43 @@ import java.util.Set;
 @Slf4j
 public class AuthService {
 
-    private final UserRepository users;
-    private final RoleRepository roles;
-    private final TokenService tokens;
-    private final KafkaTemplate<String, SpecificRecord> kafka;
-    private final UserMapper mapper;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final TokenService tokenService;
     private final PasswordEncoder encoder;
+    private final OutboxService outboxService;
+    private final KafkaTopics topics;
 
     @Transactional
     public JwtResponse register(RegisterRequest req) {
         log.info("UserRegistered username = {} email = {}", req.username(), req.email());
 
-        if (users.findByUsername(req.username()).isPresent()) {
+        if (userRepository.findByUsername(req.username()).isPresent()) {
             throw new UserAlreadyExistsException(req.username());
         }
-        if (users.findByEmail(req.email()).isPresent()) {
+        if (userRepository.findByEmail(req.email()).isPresent()) {
             throw new UserAlreadyExistsException(req.email());
         }
 
-        var role = roles.findByName("CUSTOMER")
+        var role = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new IllegalStateException("CUSTOMER role not found in database"));
 
-        var user = mapper.toEntity(req, Set.of(role));
+        var user = UserFactory.createUser(req, Set.of(role));
         user.setPasswordHash(encoder.encode(req.password()));
-        users.save(user);
+        userRepository.save(user);
 
-        var event = mapper.toUserRegistered(user);
-        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.user.registered.v1", user.getId().toString(), event);
-        record.headers().add("eventType", "fd.user.UserRegisteredV1".getBytes());
-        record.headers().add("eventId", event.getEventId().toString().getBytes());
+        var event = UserFactory.createUserRegistered(user);
+        outboxService.publish(topics.getUserRegistered(), user.getId().toString(), event);
 
-        kafka.send(record).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish user registered event userId={}", user.getId(), ex);
-            } else {
-                log.info("Published user registered event userId={}", user.getId());
-            }
-        });
-
-        var issuedToken = tokens.issue(user);
+        var issuedToken = tokenService.issue(user);
+        log.info("User registered successfully userId={}", user.getId());
         return new JwtResponse(issuedToken.token(), issuedToken.expiresAtEpochSeconds(), "Bearer");
     }
 
     public JwtResponse login(LoginRequest req) {
         log.info("UserLogin username={}", req.username());
 
-        var user = users.findByUsername(req.username())
+        var user = userRepository.findByUsername(req.username())
                 .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
 
         if (!user.isEnabled()) {
@@ -82,7 +72,7 @@ public class AuthService {
             throw new AuthenticationException(user.getUsername());
         }
 
-        var issuedToken = tokens.issue(user);
+        var issuedToken = tokenService.issue(user);
         return new JwtResponse(issuedToken.token(), issuedToken.expiresAtEpochSeconds(), "Bearer");
     }
 }

@@ -66,8 +66,16 @@ management:
       exposure:
         include: health,info
 
-#Kafka retry configuration
+#Kafka configuration
 kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:user-service}
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Consumer topics
+    user-registered: ${KAFKA_TOPIC_USER_REGISTERED:fd.user.registered.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}
     delay: ${KAFKA_RETRY_DELAY:1000}

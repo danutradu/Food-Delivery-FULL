@@ -71,6 +71,21 @@ security:
   jwt:
     jwks-uri: ${JWT_JWKS_URI:http://localhost:8082/.well-known/jwks.json}
 
+#Kafka configuration
+kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:catalog-service} #Not used atm
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Producer topics
+    restaurant-created: ${KAFKA_TOPIC_RESTAURANT_CREATED:fd.catalog.restaurant-created.v1}
+
+outbox:
+  max-retries: ${OUTBOX_MAX_RETRIES:5}
+  batch-size: ${OUTBOX_BATCH_SIZE:50}
+
 logging:
   level:
     root: INFO

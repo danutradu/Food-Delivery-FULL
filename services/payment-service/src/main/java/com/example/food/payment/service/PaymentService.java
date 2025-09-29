@@ -1,29 +1,30 @@
 package com.example.food.payment.service;
 
-import com.example.food.payment.mapper.PaymentMapper;
-import com.example.food.payment.model.PaymentEntity;
+import com.example.food.common.outbox.OutboxService;
+import com.example.food.payment.config.KafkaTopics;
 import com.example.food.payment.model.PaymentStatus;
 import com.example.food.payment.repository.PaymentRepository;
+import com.example.food.payment.util.PaymentFactory;
+import fd.payment.FeeRequestedV1;
 import fd.payment.PaymentRequestedV1;
+import fd.payment.RefundRequestedV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
     private final PaymentRepository paymentRepository;
-    private final KafkaTemplate<String, SpecificRecord> kafka;
-    private final PaymentMapper paymentMapper;
+    private final OutboxService outboxService;
+    private final KafkaTopics topics;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    @Transactional
     public void processPaymentRequest(PaymentRequestedV1 event) {
         log.info("Processing payment request orderId={} amount={}", event.getOrderId(), event.getAmountCents());
 
@@ -36,26 +37,28 @@ public class PaymentService {
             return; // Skip - already successfully paid
         }
 
-        var payment = paymentMapper.fromRequested(event);
+        var payment = PaymentFactory.createPayment(event);
         payment.setStatus(PaymentStatus.PENDING);
 
         // Simulate payment gateway call
         if (simulatePaymentGateway(event.getAmountCents())) {
-            // Payment succeeded
             payment.setStatus(PaymentStatus.AUTHORIZED);
             payment.setAuthorizationCode("AUTH-" + Math.abs(secureRandom.nextInt()));
             paymentRepository.save(payment);
 
+            var authorizedEvent = PaymentFactory.createPaymentAuthorized(payment);
+            outboxService.publish(topics.getPaymentAuthorized(), authorizedEvent.getOrderId().toString(), authorizedEvent);
+
             log.info("Payment authorized orderId={} authCode={}", orderId, payment.getAuthorizationCode());
-            publishPaymentAuthorized(payment, event.getEventId());
         } else {
-            // Payment failed
             payment.setStatus(PaymentStatus.FAILED);
             payment.setFailureReason("Insufficient funds");
             paymentRepository.save(payment);
 
+            var failedEvent = PaymentFactory.createPaymentFailed(payment);
+            outboxService.publish(topics.getPaymentFailed(), failedEvent.getOrderId().toString(), failedEvent);
+
             log.warn("Payment failed orderId={} reason={}", orderId, payment.getFailureReason());
-            publishPaymentFailed(payment, event.getEventId());
         }
     }
 
@@ -68,33 +71,58 @@ public class PaymentService {
         return secureRandom.nextInt(100) < 80; // 80% success rate
     }
 
-    private void publishPaymentAuthorized(PaymentEntity payment, UUID eventId) {
-        var authorizedEvent = paymentMapper.toAuthorized(payment);
-        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.payment.authorized.v1", payment.getOrderId().toString(), authorizedEvent);
-        record.headers().add("eventType", "fd.payment.PaymentAuthorizedV1".getBytes());
-        record.headers().add("eventId", eventId.toString().getBytes());
+    @Transactional
+    public void processRefundRequest(RefundRequestedV1 event) {
+        log.info("Processing refund request orderId={} amount={} reason={}", event.getOrderId(), event.getAmountCents(), event.getReason());
 
-        kafka.send(record).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish payment authorized event orderId={}", payment.getOrderId(), ex);
-            } else {
-                log.info("Published payment authorized event orderId={}", payment.getOrderId());
-            }
-        });
+        var payment = paymentRepository.findByOrderIdAndAndStatus(event.getOrderId(), PaymentStatus.AUTHORIZED)
+                .orElse(null);
+
+        if (payment == null) {
+            log.warn("No authorized payment found for refund orderId={}", event.getOrderId());
+            return;
+        }
+
+        // Simulate refund processing
+        payment.setStatus(PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
+
+        var refundCompletedEvent = PaymentFactory.createRefundCompleted(payment, event.getReason());
+        outboxService.publish(topics.getRefundCompleted(), payment.getOrderId().toString(), refundCompletedEvent);
+
+        log.info("Refund processed successfully orderId={} amount={}", event.getOrderId(), event.getAmountCents());
     }
 
-    private void publishPaymentFailed(PaymentEntity payment, UUID eventId) {
-        var failedEvent = paymentMapper.toFailed(payment);
-        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.payment.failed.v1", payment.getOrderId().toString(), failedEvent);
-        record.headers().add("eventType", "fd.payment.PaymentFailedV1".getBytes());
-        record.headers().add("eventId", eventId.toString().getBytes());
+    @Transactional
+    public void processFeeRequest(FeeRequestedV1 event) {
+        log.info("Processing fee request orderId={} feeCents={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
 
-        kafka.send(record).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish payment failed event orderId={}", payment.getOrderId(), ex);
-            } else {
-                log.info("Published payment failed event orderId={} reason={}", payment.getOrderId(), payment.getFailureReason());
-            }
-        });
+        var payment = paymentRepository.findByOrderIdAndAndStatus(event.getOrderId(), PaymentStatus.AUTHORIZED)
+                .orElse(null);
+
+        if (payment == null) {
+            log.warn("No authorized payment found for fee charging orderId={}", event.getOrderId());
+            return;
+        }
+
+        // Simulate fee charging (TODO: instead of this it should be charging customer's card)
+        var feeCharged = simulateFeeCharging(event.getFeeCents());
+
+        if (feeCharged) {
+            log.info("Fee charged successfully ordferId={} amount={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
+
+            var feeChargedEvent = PaymentFactory.createFeeCharged(event);
+            outboxService.publish(topics.getFeeCharged(), feeChargedEvent.getOrderId().toString(), feeChargedEvent);
+        } else {
+            log.warn("Fee charging failed orderId={} amount={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
+
+            var feeFailedEvent = PaymentFactory.createFeeFailed(event, "Payment gateway error");
+            outboxService.publish(topics.getFeeFailed(), feeFailedEvent.getOrderId().toString(), feeFailedEvent);
+        }
+    }
+
+    private boolean simulateFeeCharging(int feeCents) {
+        // Simulate fee charging - 95% success rate
+        return secureRandom.nextInt(100) < 95;
     }
 }

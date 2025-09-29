@@ -1,7 +1,6 @@
 package com.example.food.user.service;
 
 import com.example.food.user.exception.UserProfileNotFoundException;
-import com.example.food.user.mapping.UserProfileMapper;
 import com.example.food.user.model.UserProfileEntity;
 import com.example.food.user.repository.UserProfileRepository;
 import fd.user.UserRegisteredV1;
@@ -16,18 +15,20 @@ import java.util.UUID;
 @Slf4j
 public class UserService {
     private final UserProfileRepository userProfiles;
-    private final UserProfileMapper mapper;
 
     public void createUserProfile(UserRegisteredV1 event) {
         log.info("Creating user profile for userId={} username={}", event.getUserId(), event.getUsername());
 
         var existing = userProfiles.findById(event.getUserId());
-        if(existing.isPresent()) {
+        if (existing.isPresent()) {
             log.debug("User profile already exists userId={}", event.getUserId());
             return; // Idempotent - skip duplicate
         }
 
-        var profile = mapper.toProfile(event);
+        var profile = new UserProfileEntity();
+        profile.setUserId(event.getUserId());
+        profile.setUsername(event.getUsername());
+        profile.setEmail(event.getEmail());
         userProfiles.save(profile);
     }
 

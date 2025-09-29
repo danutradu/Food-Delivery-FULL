@@ -11,6 +11,7 @@ public class AssignmentEntity {
   @Id private UUID id;
   @Column(nullable=false, unique=true) private UUID orderId;
   @Column(nullable=false) private UUID courierId;
-  @Column(nullable=false) private String status; // ASSIGNED, PICKED_UP, DELIVERED
+  @Enumerated(EnumType.STRING)
+  @Column(nullable=false) private AssignmentStatus status;
   @Column(nullable=false) private Instant assignedAt = Instant.now();
 }

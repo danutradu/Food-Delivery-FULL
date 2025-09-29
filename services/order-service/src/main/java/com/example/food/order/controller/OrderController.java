@@ -26,4 +26,10 @@ public class OrderController {
     var userId = UUID.fromString(((Jwt)auth.getPrincipal()).getSubject());
     return orderService.createOrder(userId, req);
   }
+
+  @PreAuthorize("hasRole('CUSTOMER')")
+  @PatchMapping("/orders/{orderId}/cancellation")
+  public void cancel(@PathVariable UUID orderId, @RequestParam(defaultValue = "Customer requested") String reason) {
+    orderService.cancelOrder(orderId, reason);
+  }
 }

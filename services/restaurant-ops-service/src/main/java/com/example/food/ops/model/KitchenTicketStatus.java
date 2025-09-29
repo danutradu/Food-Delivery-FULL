@@ -5,5 +5,6 @@ public enum KitchenTicketStatus {
     ACCEPTED,
     REJECTED,
     IN_PROGRESS,
-    READY
+    READY,
+    CANCELLED
 }

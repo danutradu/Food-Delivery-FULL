@@ -1,12 +1,46 @@
 package com.example.food.payment.config;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
+@RequiredArgsConstructor
 public class TopicsConfig {
-  @Bean public NewTopic paymentAuthorized() { return TopicBuilder.name("fd.payment.authorized.v1").partitions(3).replicas(1).build(); }
-  @Bean public NewTopic paymentFailed() { return TopicBuilder.name("fd.payment.failed.v1").partitions(3).replicas(1).build(); }
+
+    private final KafkaTopics topics;
+
+    @Value("${kafka.topics.partitions:3}")
+    private int partitions;
+
+    @Value("${kafka.topics.replicas:3}")
+    private int replicas;
+
+    @Bean
+    public NewTopic paymentAuthorized() {
+        return TopicBuilder.name(topics.getPaymentAuthorized()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic paymentFailed() {
+        return TopicBuilder.name(topics.getPaymentFailed()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic refundCompleted() {
+        return TopicBuilder.name(topics.getRefundCompleted()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic feeCharged() {
+        return TopicBuilder.name(topics.getFeeCharged()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic feeFailed() {
+        return TopicBuilder.name(topics.getFeeFailed()).partitions(partitions).replicas(replicas).build();
+    }
 }

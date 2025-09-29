@@ -67,6 +67,21 @@ management:
       exposure:
         include: health,info
 
+jwt:
+  issuer: ${JWT_ISSUER:auth-service}
+  audience: ${JWT_AUDIENCE:food-delivery}
+  expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+
+#Kafka configuration
+kafka:
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Producer topics
+    user-registered: ${KAFKA_TOPIC_USER_REGISTERED:fd.user.registered.v1}
+
+
 logging:
   level:
     root: INFO

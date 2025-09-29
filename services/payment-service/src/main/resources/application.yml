@@ -61,8 +61,24 @@ spring:
   mvc:
     log-request-details: false
 
-#Kafka retry configuration
+#Kafka configuration
 kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:payment-service}
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Consumer topics
+    payment-requested: ${KAFKA_TOPIC_PAYMENT_REQUESTED:fd.payment.requested.v1}
+    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.delivery.refund-requested.v1}
+    fee-requested: ${KAFKA_TOPIC_FEE_REQUESTED:fd.delivery.fee-requested.v1}
+    # Producer topics
+    payment-authorized: ${KAFKA_TOPIC_PAYMENT_AUTHORIZED:fd.payment.authorized.v1}
+    payment-failed: ${KAFKA_TOPIC_PAYMENT_FAILED:fd.payment.failed.v1}
+    refund-completed: ${KAFKA_TOPIC_REFUND_COMPLETED:fd.payment.refund-completed.v1}
+    fee-charged: ${KAFKA_TOPIC_FEE_CHARGED:fd.payment.fee-charged.v1}
+    fee-failed: ${KAFKA_TOPIC_FEE_FAILED:fd.payment.fee-failed.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}
     delay: ${KAFKA_RETRY_DELAY:1000}

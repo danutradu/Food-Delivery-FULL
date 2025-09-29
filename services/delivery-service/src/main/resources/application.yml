@@ -61,8 +61,21 @@ spring:
   mvc:
     log-request-details: false
 
-#Kafka retry configuration
+#Kafka configuration
 kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:delivery-service}
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Consumer topics
+    delivery-requested: ${KAFKA_TOPIC_DELIVERY_REQUESTED:fd.delivery.requested.v1}
+    order-cancelled: ${KAFKA_TOPIC_ORDER_CANCELLED:fd.order.cancelled.v1}
+    # Producer topics
+    courier-assigned: ${KAFKA_TOPIC_COURIER_ASSIGNED:fd.delivery.courier-assigned.v1}
+    order-picked-up: ${KAFKA_TOPIC_ORDER_PICKED_UP:fd.delivery.picked-up.v1}
+    order-delivered: ${KAFKA_TOPIC_ORDER_DELIVERED:fd.delivery.delivered.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}
     delay: ${KAFKA_RETRY_DELAY:1000}

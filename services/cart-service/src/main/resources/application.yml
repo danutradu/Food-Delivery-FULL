@@ -71,6 +71,19 @@ security:
   jwt:
     jwks-uri: ${JWT_JWKS_URI:http://localhost:8082/.well-known/jwks.json}
 
+#Kafka configuration
+kafka:
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Producer topics
+    cart-checked-out: ${KAFKA_TOPIC_CART_CHECKED_OUT:fd.cart.checked-out.v1}
+
+outbox:
+  max-retries: ${OUTBOX_MAX_RETRIES:5}
+  batch-size: ${OUTBOX_BATCH_SIZE:50}
+
 logging:
   level:
     root: INFO

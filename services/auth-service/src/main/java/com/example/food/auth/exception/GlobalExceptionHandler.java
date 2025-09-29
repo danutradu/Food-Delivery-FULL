@@ -1,6 +1,7 @@
 package com.example.food.auth.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,13 +13,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Void> handleAuthenticationException(AuthenticationException e) {
         log.warn("Authentication failed: {}", e.getMessage());
-        return ResponseEntity.status(401).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @ExceptionHandler(AccountDisabledException.class)
     public ResponseEntity<Void> handleAccountDisabledException(AccountDisabledException e) {
         log.warn("Account disabled: {}", e.getMessage());
-        return ResponseEntity.status(403).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)

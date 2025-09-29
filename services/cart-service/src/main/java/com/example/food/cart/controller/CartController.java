@@ -3,11 +3,10 @@ package com.example.food.cart.controller;
 import com.example.food.cart.dto.AddItemRequest;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.service.CartService;
-import fd.cart.CartCheckedOutV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -35,8 +33,8 @@ public class CartController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/carts/{cartId}/checkout")
-    public Map<String, Object> checkout(@PathVariable("cartId") UUID cartId) {
+    public ResponseEntity<Void> checkout(@PathVariable("cartId") UUID cartId) {
         cartService.checkout(cartId);
-        return Map.of("status", "CHECKED_OUT");
+        return ResponseEntity.noContent().build();
     }
 }

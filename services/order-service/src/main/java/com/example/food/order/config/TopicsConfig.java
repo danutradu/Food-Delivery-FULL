@@ -1,15 +1,51 @@
 package com.example.food.order.config;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
+@RequiredArgsConstructor
 public class TopicsConfig {
-  @Bean public NewTopic orderCreated() { return TopicBuilder.name("fd.order.created.v1").partitions(3).replicas(1).build(); }
-  @Bean public NewTopic paymentRequested() { return TopicBuilder.name("fd.payment.requested.v1").partitions(3).replicas(1).build(); }
-  @Bean public NewTopic restaurantAcceptanceRequested() { return TopicBuilder.name("fd.restaurant.acceptance-requested.v1").partitions(3).replicas(1).build(); }
-  @Bean public NewTopic deliveryRequested() { return TopicBuilder.name("fd.delivery.requested.v1").partitions(3).replicas(1).build(); }
-  @Bean public NewTopic paymentFailed() { return TopicBuilder.name("fd.payment.failed.v1").partitions(3).replicas(1).build(); }
+
+    private final KafkaTopics topics;
+
+    @Value("${kafka.topics.partitions:3}")
+    private int partitions;
+
+    @Value("${kafka.topics.replicas:3}")
+    private int replicas;
+
+    @Bean
+    public NewTopic orderCreated() {
+        return TopicBuilder.name(topics.getOrderCreated()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic paymentRequested() {
+        return TopicBuilder.name(topics.getPaymentRequested()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic restaurantAcceptanceRequested() {
+        return TopicBuilder.name(topics.getRestaurantAcceptanceRequested()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic deliveryRequested() {
+        return TopicBuilder.name(topics.getDeliveryRequested()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic refundRequested() {
+        return TopicBuilder.name(topics.getRefundRequested()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic orderCancelled() {
+        return TopicBuilder.name(topics.getOrderCancelled()).partitions(partitions).replicas(replicas).build();
+    }
 }

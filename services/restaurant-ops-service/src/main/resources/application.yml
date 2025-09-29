@@ -61,8 +61,21 @@ spring:
   mvc:
     log-request-details: false
 
-#Kafka retry configuration
+#Kafka configuration
 kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:restaurant-ops-service}
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Consumer topics
+    acceptance-requested: ${KAFKA_TOPIC_ACCEPTANCE_REQUESTED:fd.restaurant.acceptance-requested.v1}
+    order-cancelled: ${KAFKA_TOPIC_ORDER_CANCELLED:fd.order.cancelled.v1}
+    # Producer topics
+    restaurant-accepted: ${KAFKA_TOPIC_RESTAURANT_ACCEPTED:fd.restaurant.accepted.v1}
+    restaurant-rejected: ${KAFKA_TOPIC_RESTAURANT_REJECTED:fd.restaurant.rejected.v1}
+    order-ready: ${KAFKA_TOPIC_ORDER_READY:fd.restaurant.order-ready.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}
     delay: ${KAFKA_RETRY_DELAY:1000}

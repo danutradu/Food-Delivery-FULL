@@ -1,16 +1,16 @@
 package com.example.food.cart.service;
 
+import com.example.food.cart.config.KafkaTopics;
 import com.example.food.cart.dto.AddItemRequest;
 import com.example.food.cart.exception.CartNotFoundException;
-import com.example.food.cart.mapper.CartMapper;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.repository.CartRepository;
+import com.example.food.cart.util.CartFactory;
+import com.example.food.common.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -18,44 +18,38 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class CartService {
-    private final CartRepository carts;
-    private final KafkaTemplate<String, SpecificRecord> kafka;
-    private final CartMapper mapper;
+    private final CartRepository cartRepository;
+    private final OutboxService outboxService;
+    private final KafkaTopics topics;
 
     public CartEntity addItem(UUID cartId, AddItemRequest req, UUID customerUserId) {
         log.info("CartItemAdded cartId={} name={} qty={} priceCents={}", cartId, req.name(), req.quantity(), req.unitPriceCents());
 
-        var cart = carts.findById(cartId).orElseGet(() -> {
+        var cart = cartRepository.findById(cartId).orElseGet(() -> {
             var nc = new CartEntity();
             nc.setId(cartId);
             nc.setCustomerUserId(customerUserId);
             return nc;
         });
 
-        var item = mapper.toItem(req);
+        var item = CartFactory.createCartItem(req);
         item.setCart(cart);
         cart.getItems().add(item);
 
-        return carts.save(cart);
+        return cartRepository.save(cart);
     }
 
+    @Transactional
     public void checkout(UUID cartId) {
         log.info("CartCheckedOut cartId={}", cartId);
 
-        var cart = carts.findById(cartId)
+        var cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartNotFoundException(cartId.toString()));
 
-        var event = mapper.toCheckedOut(cart);
-        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.cart.checked-out.v1", cart.getId().toString(), event);
-        record.headers().add("eventType", "fd.cart.CartCheckedOutV1".getBytes());
-        record.headers().add("eventId", event.getEventId().toString().getBytes());
+        var event = CartFactory.createCartCheckedOut(cart);
+        outboxService.publish(topics.getCartCheckedOut(), cart.getItems().toString(), event);
 
-        kafka.send(record).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish cart checked out event cartId={}", cartId, ex);
-            } else {
-                log.info("Published cart checked out event cartId={}", cartId);
-            }
-        });
+        cartRepository.delete(cart);
+        log.info("Cart checked out and deleted cartId={}", cartId);
     }
 }

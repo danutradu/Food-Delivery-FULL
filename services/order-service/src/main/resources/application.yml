@@ -61,8 +61,32 @@ spring:
   mvc:
     log-request-details: false
 
-#Kafka retry configuration
+#Kafka configuration
 kafka:
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:order-service}
+  topics:
+    # Topic configuration
+    partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+    # Consumer topics
+    cart-checked-out: ${KAFKA_TOPIC_CART_CHECKED_OUT:fd.cart.checked-out.v1}
+    payment-authorized: ${KAFKA_TOPIC_PAYMENT_AUTHORIZED:fd.payment.authorized.v1}
+    payment-failed: ${KAFKA_TOPIC_PAYMENT_FAILED:fd.payment.failed.v1}
+    restaurant-accepted: ${KAFKA_TOPIC_RESTAURANT_ACCEPTED:fd.restaurant.accepted.v1}
+    restaurant-rejected: ${KAFKA_TOPIC_RESTAURANT_REJECTED:fd.restaurant.rejected.v1}
+    order-ready: ${KAFKA_TOPIC_ORDER_READY:fd.restaurant.order-ready.v1}
+    order-picked-up: ${KAFKA_TOPIC_ORDER_PICKED_UP:fd.delivery.picked-up.v1}
+    order-delivered: ${KAFKA_TOPIC_ORDER_DELIVERED:fd.delivery.delivered.v1}
+    fee-charged: ${KAFKA_TOPIC_FEE_CHARGED:fd.payment.fee-charged.v1}
+    fee-failed: ${KAFKA_TOPIC_FEE_FAILED:fd.payment.fee-failed.v1}
+    # Producer topics
+    order-created: ${KAFKA_TOPIC_ORDER_CREATED:fd.order.created.v1}
+    payment-requested: ${KAFKA_TOPIC_PAYMENT_REQUESTED:fd.payment.requested.v1}
+    restaurant-acceptance-requested: ${KAFKA_TOPIC_RESTAURANT_ACCEPTANCE_REQUESTED:fd.restaurant.acceptance-requested.v1}
+    delivery-requested: ${KAFKA_TOPIC_DELIVERY_REQUESTED:fd.delivery.requested.v1}
+    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.delivery.refund-requested.v1}
+    order-cancelled: ${KAFKA_TOPIC_ORDER_CANCELLED:fd.order.cancelled.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}
     delay: ${KAFKA_RETRY_DELAY:1000}

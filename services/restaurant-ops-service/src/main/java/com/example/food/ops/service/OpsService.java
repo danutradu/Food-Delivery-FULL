@@ -1,17 +1,17 @@
 package com.example.food.ops.service;
 
+import com.example.food.common.outbox.OutboxService;
+import com.example.food.ops.config.KafkaTopics;
 import com.example.food.ops.dto.StatusUpdateRequest;
 import com.example.food.ops.exception.KitchenTicketNotFoundException;
-import com.example.food.ops.mapper.OpsMapper;
 import com.example.food.ops.model.KitchenTicketEntity;
 import com.example.food.ops.model.KitchenTicketStatus;
 import com.example.food.ops.repository.KitchenTicketRepository;
+import com.example.food.ops.util.OpsEventFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,8 +22,8 @@ import java.util.UUID;
 @Slf4j
 public class OpsService {
     private final KitchenTicketRepository ticketRepository;
-    private final KafkaTemplate<String, SpecificRecord> kafka;
-    private final OpsMapper mapper;
+    private final OutboxService outboxService;
+    private final KafkaTopics topics;
 
     public void processAcceptanceRequest(UUID orderId, UUID restaurantId) {
         log.info("Process acceptance request orderId={} restaurantId={}", orderId, restaurantId);
@@ -40,6 +40,7 @@ public class OpsService {
         ticketRepository.save(ticket);
     }
 
+    @Transactional
     public KitchenTicketEntity updateStatus(UUID orderId, StatusUpdateRequest request) {
         log.info("Updating status orderId={} status={}", orderId, request.status());
 
@@ -53,11 +54,13 @@ public class OpsService {
                 if (request.etaMinutes() != null) {
                     ticket.setEstimatedPrepTimeMinutes(request.etaMinutes());
                 }
-                publishAcceptedEvent(ticket, request.etaMinutes() != null ? request.etaMinutes() : 15);
+                var acceptedEvent = OpsEventFactory.createRestaurantAccepted(ticket, request.etaMinutes() != null ? request.etaMinutes() : 15);
+                outboxService.publish(topics.getRestaurantAccepted(), acceptedEvent.getOrderId().toString(), acceptedEvent);
             }
             case REJECTED -> {
                 ticket.setStatus(KitchenTicketStatus.REJECTED);
-                publishRejectedEvent(ticket, request.reason() != null ? request.reason() : "Out of stock");
+                var rejectedEvent = OpsEventFactory.createRestaurantRejected(ticket, request.reason() != null ? request.reason() : "Out of stock");
+                outboxService.publish(topics.getRestaurantRejected(), rejectedEvent.getOrderId().toString(), rejectedEvent);
             }
             case IN_PROGRESS -> {
                 ticket.setStatus(KitchenTicketStatus.IN_PROGRESS);
@@ -66,71 +69,13 @@ public class OpsService {
             case READY -> {
                 ticket.setStatus(KitchenTicketStatus.READY);
                 ticket.setReadyAt(Instant.now());
-                publishReadyEvent(ticket);
+                var readyEvent = OpsEventFactory.createOrderReady(ticket);
+                outboxService.publish(topics.getOrderReady(), readyEvent.getOrderId().toString(), readyEvent);
             }
             default -> throw new IllegalArgumentException("Invalid status transition: " + request.status());
         }
 
         return ticketRepository.save(ticket);
-    }
-
-    private void publishAcceptedEvent(KitchenTicketEntity ticket, int etaMinutes) {
-        var event = mapper.toAccepted(ticket, etaMinutes);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.accepted.v1", ticket.getOrderId().toString(), event);
-        rec.headers().add("eventType", "fd.restaurant.RestaurantAcceptedV1".getBytes());
-        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
-
-        kafka.send(rec).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish restaurant accepted event orderId={}", ticket.getOrderId(), ex);
-            } else {
-                log.info("Published restaurant accepted event orderId={}", ticket.getOrderId());
-            }
-        });
-    }
-
-    private void publishRejectedEvent(KitchenTicketEntity ticket, String reason) {
-        var event = mapper.toRejected(ticket, reason);
-        ProducerRecord<String, SpecificRecord> rec = new ProducerRecord<>("fd.restaurant.rejected.v1", ticket.getOrderId().toString(), event);
-        rec.headers().add("eventType", "fd.restaurant.RestaurantRejectedV1".getBytes());
-        rec.headers().add("eventId", event.getOrderId().toString().getBytes());
-
-        kafka.send(rec).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish restaurant rejected event orderId={}", ticket.getOrderId(), ex);
-            } else {
-                log.info("Published restaurant rejected event orderId={}", ticket.getOrderId());
-            }
-        });
-    }
-
-    private void publishReadyEvent(KitchenTicketEntity ticket) {
-        var event = mapper.toReady(ticket);
-        ProducerRecord<String, SpecificRecord> record = new ProducerRecord<>("fd.restaurant.order-ready.v1", ticket.getOrderId().toString(), event);
-        record.headers().add("eventType", "fd.restaurant.OrderReadyForPickupV1".getBytes());
-        record.headers().add("eventId", event.getOrderId().toString().getBytes());
-
-        kafka.send(record).whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish order ready event orderId={}", ticket.getOrderId(), ex);
-            } else {
-                log.info("Published order ready event orderId={}", ticket.getOrderId());
-            }
-        });
-    }
-
-    public void startCooking(UUID orderId) {
-        log.info("Starting cooking orderId={}", orderId);
-
-        var ticket = ticketRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new KitchenTicketNotFoundException(orderId.toString()));
-
-        ticket.setStatus(KitchenTicketStatus.IN_PROGRESS);
-        ticket.setStartedAt(Instant.now());
-
-        ticketRepository.save(ticket);
-
-        log.info("Order cooking started orderId={}", orderId);
     }
 
     public List<KitchenTicketEntity> getTickets(KitchenTicketStatus status) {
@@ -143,5 +88,24 @@ public class OpsService {
     public KitchenTicketEntity getTicket(UUID orderId) {
         return ticketRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new KitchenTicketNotFoundException(orderId.toString()));
+    }
+
+    public void cancelKitchenTicket(UUID orderId, String reason) {
+        log.info("Cancelling kitchen ticket orderId={} reason={}", orderId, reason);
+
+        var ticket = ticketRepository.findByOrderId(orderId).orElseThrow(null);
+        if (ticket == null) {
+            log.warn("No kitchen ticket found for cancelled order orderId={}", orderId);
+            return;
+        }
+
+        // Only cancel if not already completed
+        if (ticket.getStatus() != KitchenTicketStatus.READY) {
+            ticket.setStatus(KitchenTicketStatus.CANCELLED);
+            ticketRepository.save(ticket);
+            log.info("Kitchen ticket cancelled orderId={}", orderId);
+        } else {
+            log.info("Kitchen ticket already ready, not cancelling orderId={}", orderId);
+        }
     }
 }

@@ -71,8 +71,8 @@ kafka:
     replicas: ${KAFKA_TOPIC_REPLICAS:1}
     # Consumer topics
     payment-requested: ${KAFKA_TOPIC_PAYMENT_REQUESTED:fd.payment.requested.v1}
-    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.delivery.refund-requested.v1}
-    fee-requested: ${KAFKA_TOPIC_FEE_REQUESTED:fd.delivery.fee-requested.v1}
+    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.payment.refund-requested.v1}
+    fee-requested: ${KAFKA_TOPIC_FEE_REQUESTED:fd.payment.fee-requested.v1}
     # Producer topics
     payment-authorized: ${KAFKA_TOPIC_PAYMENT_AUTHORIZED:fd.payment.authorized.v1}
     payment-failed: ${KAFKA_TOPIC_PAYMENT_FAILED:fd.payment.failed.v1}

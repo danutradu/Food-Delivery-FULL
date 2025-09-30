@@ -85,7 +85,8 @@ kafka:
     payment-requested: ${KAFKA_TOPIC_PAYMENT_REQUESTED:fd.payment.requested.v1}
     restaurant-acceptance-requested: ${KAFKA_TOPIC_RESTAURANT_ACCEPTANCE_REQUESTED:fd.restaurant.acceptance-requested.v1}
     delivery-requested: ${KAFKA_TOPIC_DELIVERY_REQUESTED:fd.delivery.requested.v1}
-    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.delivery.refund-requested.v1}
+    refund-requested: ${KAFKA_TOPIC_REFUND_REQUESTED:fd.payment.refund-requested.v1}
+    fee-requested: ${KAFKA_TOPIC_FEE_REQUESTED:fd.payment.fee-requested.v1}
     order-cancelled: ${KAFKA_TOPIC_ORDER_CANCELLED:fd.order.cancelled.v1}
   retry:
     attempts: ${KAFKA_RETRY_ATTEMPTS:3}

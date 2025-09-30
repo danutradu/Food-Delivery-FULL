@@ -43,7 +43,7 @@ VALUES (
            '550e8400-e29b-41d4-a716-446655440000',
            'admin',
            'admin@fooddelivery.com',
-           '$2a$10$8K1p/a0dL2AZBfXAvhq/YeJ7H2QX4nxB5F5QX4nxB5F5QX4nxB5F5Q',
+           '$2a$12$tmCACDfa2RevN0GDmNUlsu.51fCAf/MqV41KQob0vZANGMDmprLEK',
            true
        ) ON CONFLICT (username) DO NOTHING;
 

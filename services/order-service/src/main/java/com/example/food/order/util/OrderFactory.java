@@ -1,45 +1,41 @@
 package com.example.food.order.util;
 
-import com.example.food.order.dto.CreateOrderRequest;
 import com.example.food.order.dto.OrderResponse;
 import com.example.food.order.model.OrderEntity;
 import com.example.food.order.model.OrderItemEntity;
+import fd.cart.CartCheckedOutV1;
+import fd.cart.CartItem;
 import lombok.experimental.UtilityClass;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @UtilityClass
 public class OrderFactory {
 
-    public OrderEntity createOrder(CreateOrderRequest req, UUID customerUserId) {
+    public OrderEntity createOrderFromCart(CartCheckedOutV1 event) {
         var order = new OrderEntity();
         order.setId(UUID.randomUUID());
-        order.setCustomerUserId(customerUserId);
-        order.setRestaurantId(req.restaurantId());
-        order.setCurrency(req.currency());
-        order.setCreatedAt(Instant.now());
+        order.setCartId(event.getCartId());
+        order.setCustomerUserId(event.getCustomerUserId());
+        order.setRestaurantId(event.getRestaurantId());
+        order.setCurrency(event.getCurrency());
+        order.setTotalCents(event.getTotalCents());
 
-        var items = req.items().stream()
+        var items = event.getItems().stream()
                 .map(item -> createOrderItem(item, order))
                 .toList();
         order.setItems(items);
 
-        int total = items.stream()
-                .mapToInt(item -> item.getUnitPriceCents() * item.getQuantity())
-                .sum();
-        order.setTotalCents(total);
-
         return order;
     }
 
-    private OrderItemEntity createOrderItem(CreateOrderRequest.Item item, OrderEntity order) {
+    private OrderItemEntity createOrderItem(CartItem cartItem, OrderEntity order) {
         var orderItem = new OrderItemEntity();
         orderItem.setId(UUID.randomUUID());
-        orderItem.setMenuItemId(item.menuItemId());
-        orderItem.setName(item.name());
-        orderItem.setUnitPriceCents(item.unitPriceCents());
-        orderItem.setQuantity(item.quantity());
+        orderItem.setMenuItemId(cartItem.getMenuItemId());
+        orderItem.setName(cartItem.getName());
+        orderItem.setUnitPriceCents(cartItem.getUnitPriceCents());
+        orderItem.setQuantity(cartItem.getQuantity());
         orderItem.setOrder(order);
         return orderItem;
     }

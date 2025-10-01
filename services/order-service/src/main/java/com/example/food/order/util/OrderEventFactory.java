@@ -34,6 +34,8 @@ public class OrderEventFactory {
                 .setCustomerUserId(order.getCustomerUserId())
                 .setRestaurantId(order.getRestaurantId())
                 .setItems(items)
+                .setTotalCents(order.getTotalCents())
+                .setCurrency(order.getCurrency())
                 .build();
     }
 

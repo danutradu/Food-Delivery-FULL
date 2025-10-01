@@ -1,6 +1,7 @@
 package com.example.food.cart.util;
 
 import com.example.food.cart.dto.AddItemRequest;
+import com.example.food.cart.dto.CartResponse;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.model.CartItemEntity;
 import fd.cart.CartCheckedOutV1;
@@ -45,6 +46,26 @@ public class CartFactory {
                 cart.getRestaurantId(),
                 cart.getCurrency(),
                 totalCents,
+                items
+        );
+    }
+
+    public CartResponse createCartResponse(CartEntity cart) {
+        var items = cart.getItems().stream()
+                .map(item -> new CartResponse.CartItemResponse(
+                        item.getId(),
+                        item.getMenuItemId(),
+                        item.getName(),
+                        item.getUnitPriceCents(),
+                        item.getQuantity()
+                ))
+                .toList();
+
+        return new CartResponse(
+                cart.getId(),
+                cart.getRestaurantId(),
+                cart.getCurrency(),
+                cart.getTotalCents(),
                 items
         );
     }

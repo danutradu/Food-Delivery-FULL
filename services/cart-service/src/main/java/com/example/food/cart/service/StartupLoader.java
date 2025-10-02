@@ -99,9 +99,7 @@ public class StartupLoader implements ApplicationRunner {
         }
     }
 
-    public record RestaurantDto(UUID id, String name) {
-    }
+    public record RestaurantDto(UUID id, String name) {}
 
-    public record MenuItemDto(UUID id, String name, int price, String currency, boolean available) {
-    }
+    public record MenuItemDto(UUID id, String name, int price, boolean available) {}
 }

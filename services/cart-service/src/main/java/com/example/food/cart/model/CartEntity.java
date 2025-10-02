@@ -21,12 +21,10 @@ public class CartEntity {
     private UUID customerUserId;
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartItemEntity> items = new ArrayList<>();
-    @Column(nullable = false)
-    private String currency = "USD";
 
-    public int getTotalCents() {
+    public int getTotal() {
         return items.stream()
-                .mapToInt(item -> item.getUnitPriceCents() * item.getQuantity())
+                .mapToInt(item -> item.getUnitPrice() * item.getQuantity())
                 .sum();
     }
 

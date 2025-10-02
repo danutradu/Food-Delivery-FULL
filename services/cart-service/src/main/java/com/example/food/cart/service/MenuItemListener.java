@@ -28,8 +28,7 @@ public class MenuItemListener {
                 event.getRestaurantId(),
                 event.getMenuItemId(),
                 event.getName(),
-                event.getPriceCents(),
-                event.getCurrency(),
+                event.getPrice(),
                 event.getAvailable()
         );
     }
@@ -44,19 +43,18 @@ public class MenuItemListener {
                 event.getRestaurantId(),
                 event.getMenuItemId(),
                 event.getName(),
-                event.getPriceCents(),
-                event.getCurrency(),
+                event.getPrice(),
                 event.getAvailable()
         );
 
-        int updateItems = cartItemRepository.updateByMenuItemId(
+        int updatedItems = cartItemRepository.updateByMenuItemId(
                 event.getMenuItemId(),
                 event.getName(),
-                event.getPriceCents()
+                event.getPrice()
         );
 
-        if (updateItems > 0) {
-            log.info("Updated {} cart items with new menu item data menuItemId={} newPrice={}", updateItems, event.getMenuItemId(), event.getPriceCents());
+        if (updatedItems > 0) {
+            log.info("Updated {} cart items with new menu item data menuItemId={} newPrice={}", updatedItems, event.getMenuItemId(), event.getPrice());
         }
     }
 

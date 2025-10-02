@@ -12,7 +12,7 @@ public class MenuItemEntity {
   private UUID sectionId;
   @Column(nullable=false) private String name;
   private String description;
-  @Column(nullable=false) private int priceCents;
+  @Column(nullable=false) private int price;
   @Column(nullable=false) private boolean available = true;
   @Column(nullable=false) private int version = 0;
 }

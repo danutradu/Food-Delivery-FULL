@@ -106,8 +106,7 @@ public class OrderSagaListener {
                 UUID.randomUUID(),
                 Instant.now(),
                 event.getOrderId(),
-                event.getAmountCents(),
-                event.getCurrency(),
+                event.getAmount(),
                 "Order processing failed after payment authorization"
         );
         outboxService.publish(topics.getRefundRequested(), event.getOrderId().toString(), refundEvent);
@@ -137,8 +136,7 @@ public class OrderSagaListener {
                 UUID.randomUUID(),
                 Instant.now(),
                 event.getOrderId(),
-                order.getTotalCents(),
-                order.getCurrency(),
+                order.getTotal(),
                 "Order processing failed after restaurant acceptance"
         );
 

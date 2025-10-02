@@ -44,11 +44,11 @@ public class NotificationListener {
   public void onPaymentFailed(PaymentFailedV1 e) { log.info("Notify: Payment failed {} reason {}", e.getOrderId(), e.getFailureReason()); }
 
   @KafkaListener(topics="${kafka.topics.refund-completed}", groupId="${kafka.consumer.group-id}")
-  public void onRefundCompleted(RefundCompletedV1 e) { log.info("Notify: Refund completed {} amount={}{} reason={}", e.getOrderId(), e.getAmountCents(), e.getCurrency(), e.getReason()); }
+  public void onRefundCompleted(RefundCompletedV1 e) { log.info("Notify: Refund completed {} amount={} reason={}", e.getOrderId(), e.getAmount(),  e.getReason()); }
 
   @KafkaListener(topics="${kafka.topics.fee-charged}", groupId="${kafka.consumer.group-id}")
-  public void onFeeCharged(FeeChargedV1 e) { log.info("Notify: Fee charged successfully {} amount={}{} reason={}", e.getOrderId(), e.getFeeCents(), e.getCurrency(), e.getReason()); }
+  public void onFeeCharged(FeeChargedV1 e) { log.info("Notify: Fee charged successfully {} amount={} reason={}", e.getOrderId(), e.getFee(), e.getReason()); }
 
   @KafkaListener(topics="${kafka.topics.fee-failed}", groupId="${kafka.consumer.group-id}")
-  public void onFeeFailed(FeeFailedV1 e) { log.info("Notify: Fee charging failed {} amount={}{} reason={}", e.getOrderId(), e.getFeeCents(), e.getCurrency(), e.getReason()); }
+  public void onFeeFailed(FeeFailedV1 e) { log.info("Notify: Fee charging failed {} amount={} reason={}", e.getOrderId(), e.getFee(), e.getReason()); }
 }

@@ -14,8 +14,7 @@ public class PaymentFactory {
         var payment = new PaymentEntity();
         payment.setId(UUID.randomUUID());
         payment.setOrderId(req.getOrderId());
-        payment.setAmountCents(req.getAmountCents());
-        payment.setCurrency(req.getCurrency());
+        payment.setAmount(req.getAmount());
         payment.setCreatedAt(Instant.now());
         return payment;
     }
@@ -25,8 +24,7 @@ public class PaymentFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 payment.getOrderId(),
-                payment.getAmountCents(),
-                payment.getCurrency(),
+                payment.getAmount(),
                 payment.getAuthorizationCode()
         );
     }
@@ -36,8 +34,7 @@ public class PaymentFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 payment.getOrderId(),
-                payment.getAmountCents(),
-                payment.getCurrency(),
+                payment.getAmount(),
                 payment.getFailureReason()
         );
     }
@@ -47,8 +44,7 @@ public class PaymentFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 payment.getOrderId(),
-                payment.getAmountCents(),
-                payment.getCurrency(),
+                payment.getAmount(),
                 reason
         );
     }
@@ -58,8 +54,7 @@ public class PaymentFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 feeRequested.getOrderId(),
-                feeRequested.getFeeCents(),
-                feeRequested.getCurrency(),
+                feeRequested.getFee(),
                 feeRequested.getReason()
         );
     }
@@ -69,8 +64,7 @@ public class PaymentFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 event.getOrderId(),
-                event.getFeeCents(),
-                event.getCurrency(),
+                event.getFee(),
                 event.getReason(),
                 failureReason
         );

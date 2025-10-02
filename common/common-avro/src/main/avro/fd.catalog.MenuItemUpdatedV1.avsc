@@ -8,10 +8,9 @@
     {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
     {"name":"menuItemId","type":{"type":"string","logicalType":"uuid"}},
     {"name":"sectionId","type":["null",{"type":"string","logicalType":"uuid"}], "default": null},
-    {"name":"currency","type":"string"},
     {"name":"name","type":"string"},
     {"name":"description","type":["null","string"], "default": null},
-    {"name":"priceCents","type":"int"},
+    {"name":"price","type":"int"},
     {"name":"available","type":"boolean"},
     {"name":"version","type":"int"}
   ]

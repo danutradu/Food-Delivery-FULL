@@ -6,9 +6,8 @@ import java.util.UUID;
 public record CartResponse(
         UUID cartId,
         UUID restaurantId,
-        String currency,
-        int totalCents,
+        int total,
         List<CartItemResponse> items
 ) {
-    public record CartItemResponse(UUID itemId, UUID menuItemId, String name, int unitPriceCents, int quantity) {}
+    public record CartItemResponse(UUID itemId, UUID menuItemId, String name, int unitPrice, int quantity) {}
 }

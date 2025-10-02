@@ -12,6 +12,6 @@ public class CartItemEntity {
   private CartEntity cart;
   @Column(nullable=false) private UUID menuItemId;
   @Column(nullable=false) private String name;
-  @Column(nullable=false) private int unitPriceCents;
+  @Column(nullable=false) private int unitPrice;
   @Column(nullable=false) private int quantity;
 }

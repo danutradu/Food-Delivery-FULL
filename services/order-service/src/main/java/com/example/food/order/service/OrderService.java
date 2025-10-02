@@ -46,8 +46,8 @@ public class OrderService {
             OrderStatus.OUT_FOR_DELIVERY
     );
 
-    private static final int CANCELLATION_FEE_CENTS = 500;
-    private static final int DELIVERY_FEE_CENTS = 800;
+    private static final int CANCELLATION_FEE = 5;
+    private static final int DELIVERY_FEE = 8;
 
     private final OrderRepository orderRepository;
     private final OutboxService outboxService;
@@ -74,7 +74,7 @@ public class OrderService {
         outboxService.publish(topics.getOrderCreated(), order.getId().toString(), orderCreatedEvent);
         outboxService.publish(topics.getPaymentRequested(), order.getId().toString(), paymentRequestedEvent);
 
-        log.info("Order created successfully orderId={} total={}{}", order.getId(), order.getTotalCents(), order.getCurrency());
+        log.info("Order created successfully orderId={} total={}", order.getId(), order.getTotal());
     }
 
     @Transactional
@@ -96,8 +96,7 @@ public class OrderService {
                 Instant.now(),
                 event.getOrderId(),
                 order.getRestaurantId(),
-                event.getAmountCents(),
-                event.getCurrency()
+                event.getAmount()
         );
         outboxService.publish(topics.getRestaurantAcceptanceRequested(), acceptanceRequested.getOrderId().toString(), acceptanceRequested);
 
@@ -217,7 +216,7 @@ public class OrderService {
 
     @Transactional
     public void processFeeCharged(FeeChargedV1 event) {
-        log.info("Fee charged successfully orderId={} amount={}", event.getOrderId(), event.getFeeCents());
+        log.info("Fee charged successfully orderId={} amount={}", event.getOrderId(), event.getFee());
 
         var order = findOrder(event.getOrderId());
 
@@ -305,7 +304,7 @@ public class OrderService {
             var refundEvent = OrderEventFactory.createRefundRequested(order, refundPolicy);
             outboxService.publish(topics.getRefundRequested(), refundEvent.getOrderId().toString(), refundEvent);
 
-            log.info("Order cancelled immediately with refund orderId={} amount={}{}", orderId, order.getTotalCents(), order.getCurrency());
+            log.info("Order cancelled immediately with refund orderId={} amount={}", orderId, order.getTotal());
         } else {
             // Late cancellation - wait for fee processing
             order.setStatus(OrderStatus.CANCELLING);
@@ -314,7 +313,7 @@ public class OrderService {
             var feeEvent = OrderEventFactory.createFeeRequested(order, refundPolicy);
             outboxService.publish(topics.getFeeRequested(), feeEvent.getOrderId().toString(), feeEvent);
 
-            log.info("Order cancellation pending fee payment orderId={} fee=${}", orderId, refundPolicy.feeCents());
+            log.info("Order cancellation pending fee payment orderId={} fee={}", orderId, refundPolicy.fee());
         }
     }
 
@@ -327,11 +326,11 @@ public class OrderService {
             case PENDING, PAYMENT_AUTHORIZED ->
                     new RefundPolicy(true, RefundType.FULL, 0, "Full refund - order not started");
             case RESTAURANT_ACCEPTED ->
-                    new RefundPolicy(false, RefundType.NO_REFUND, CANCELLATION_FEE_CENTS, "No refund + cancellation fee - courier assigned");
+                    new RefundPolicy(false, RefundType.NO_REFUND, CANCELLATION_FEE, "No refund + cancellation fee - courier assigned");
             case READY_FOR_PICKUP ->
-                    new RefundPolicy(false, RefundType.NO_REFUND, DELIVERY_FEE_CENTS, "No refund + delivery status - courier en route");
+                    new RefundPolicy(false, RefundType.NO_REFUND, DELIVERY_FEE, "No refund + delivery status - courier en route");
             case OUT_FOR_DELIVERY ->
-                    new RefundPolicy(false, RefundType.NO_REFUND, DELIVERY_FEE_CENTS, "No refund + delivery fee - courier en route");
+                    new RefundPolicy(false, RefundType.NO_REFUND, DELIVERY_FEE, "No refund + delivery fee - courier en route");
             default -> new RefundPolicy(false, RefundType.NO_REFUND, 0, "Cannot cancel in status: " + status);
         };
     }

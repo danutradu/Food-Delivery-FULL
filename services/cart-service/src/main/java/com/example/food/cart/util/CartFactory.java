@@ -13,12 +13,12 @@ import java.util.UUID;
 @UtilityClass
 public class CartFactory {
 
-    public CartItemEntity createCartItem(UUID menuItemId, String name, int unitPriceCents, int quantity) {
+    public CartItemEntity createCartItem(UUID menuItemId, String name, int unitPrice, int quantity) {
         var item = new CartItemEntity();
         item.setId(UUID.randomUUID());
         item.setMenuItemId(menuItemId);
         item.setName(name);
-        item.setUnitPriceCents(unitPriceCents);
+        item.setUnitPrice(unitPrice);
         item.setQuantity(quantity);
         return item;
     }
@@ -28,13 +28,13 @@ public class CartFactory {
                 .map(item -> new CartItem(
                         item.getMenuItemId(),
                         item.getName(),
-                        item.getUnitPriceCents(),
+                        item.getUnitPrice(),
                         item.getQuantity()
                 ))
                 .toList();
 
-        int totalCents = cart.getItems().stream()
-                .mapToInt(item -> item.getUnitPriceCents() * item.getQuantity())
+        int total = cart.getItems().stream()
+                .mapToInt(item -> item.getUnitPrice() * item.getQuantity())
                 .sum();
 
         return new CartCheckedOutV1(
@@ -43,8 +43,7 @@ public class CartFactory {
                 cart.getId(),
                 cart.getCustomerUserId(),
                 cart.getRestaurantId(),
-                cart.getCurrency(),
-                totalCents,
+                total,
                 items
         );
     }
@@ -55,7 +54,7 @@ public class CartFactory {
                         item.getId(),
                         item.getMenuItemId(),
                         item.getName(),
-                        item.getUnitPriceCents(),
+                        item.getUnitPrice(),
                         item.getQuantity()
                 ))
                 .toList();
@@ -63,8 +62,7 @@ public class CartFactory {
         return new CartResponse(
                 cart.getId(),
                 cart.getRestaurantId(),
-                cart.getCurrency(),
-                cart.getTotalCents(),
+                cart.getTotal(),
                 items
         );
     }

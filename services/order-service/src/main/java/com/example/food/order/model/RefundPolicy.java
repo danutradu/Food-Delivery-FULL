@@ -3,6 +3,6 @@ package com.example.food.order.model;
 public record RefundPolicy(
         boolean shouldRefund,
         RefundType refundType,
-        int feeCents,
+        int fee,
         String reason
 ) {}

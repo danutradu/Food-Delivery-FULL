@@ -43,7 +43,7 @@ public class CatalogFactory {
         menuItem.setId(UUID.randomUUID());
         menuItem.setName(req.name());
         menuItem.setDescription(req.description());
-        menuItem.setPriceCents(req.priceCents());
+        menuItem.setPrice(req.price());
         menuItem.setSectionId(req.sectionId());
         menuItem.setAvailable(req.available());
         return menuItem;
@@ -56,8 +56,7 @@ public class CatalogFactory {
                 menuItem.getRestaurantId(),
                 menuItem.getId(),
                 menuItem.getName(),
-                menuItem.getPriceCents(),
-                "USD", // Default currency
+                menuItem.getPrice(),
                 menuItem.isAvailable()
         );
     }
@@ -70,9 +69,8 @@ public class CatalogFactory {
                 .setMenuItemId(menuItem.getId())
                 .setName(menuItem.getName())
                 .setDescription(menuItem.getDescription())
-                .setPriceCents(menuItem.getPriceCents())
+                .setPrice(menuItem.getPrice())
                 .setSectionId(menuItem.getSectionId())
-                .setCurrency("USD") // default for now
                 .setAvailable(menuItem.isAvailable())
                 .build();
     }

@@ -37,7 +37,6 @@ public class CartService {
             nc.setId(UUID.randomUUID());
             nc.setCustomerUserId(customerUserId);
             nc.setRestaurantId(req.restaurantId());
-            nc.setCurrency(menuItem.currency());
             return nc;
         });
 
@@ -55,7 +54,7 @@ public class CartService {
             item.setQuantity(oldQuantity + req.quantity());
             log.info("Merged with existing item menuItemId={} oldQuantity={} added={} newQuantity={}", req.menuItemId(), oldQuantity, req.quantity(), item.getQuantity());
         } else {
-            var item = CartFactory.createCartItem(req.menuItemId(), menuItem.name(), menuItem.priceCents(), req.quantity());
+            var item = CartFactory.createCartItem(req.menuItemId(), menuItem.name(), menuItem.price(), req.quantity());
             item.setCart(cart);
             cart.getItems().add(item);
             log.info("Added new item to cart menuItemId={} quantity={}", req.menuItemId(), req.quantity());
@@ -135,6 +134,6 @@ public class CartService {
 
         cartRepository.delete(cart);
         log.info("Cart checked out and deleted cartId={} customerUserId={} items={} total={}{} restaurantId={}",
-                cart.getId(), customerUserId, cart.getItemCount(), cart.getTotalCents(), cart.getCurrency(), cart.getRestaurantId());
+                cart.getId(), customerUserId, cart.getItemCount(), cart.getTotal(), cart.getRestaurantId());
     }
 }

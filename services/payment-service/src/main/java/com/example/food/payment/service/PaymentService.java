@@ -26,7 +26,7 @@ public class PaymentService {
 
     @Transactional
     public void processPaymentRequest(PaymentRequestedV1 event) {
-        log.info("Processing payment request orderId={} amount={}", event.getOrderId(), event.getAmountCents());
+        log.info("Processing payment request orderId={} amount={}", event.getOrderId(), event.getAmount());
 
         var orderId = event.getOrderId();
 
@@ -41,7 +41,7 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.PENDING);
 
         // Simulate payment gateway call
-        if (simulatePaymentGateway(event.getAmountCents())) {
+        if (simulatePaymentGateway(event.getAmount())) {
             payment.setStatus(PaymentStatus.AUTHORIZED);
             payment.setAuthorizationCode("AUTH-" + Math.abs(secureRandom.nextInt()));
             paymentRepository.save(payment);
@@ -62,10 +62,10 @@ public class PaymentService {
         }
     }
 
-    private boolean simulatePaymentGateway(int amountCents) {
+    private boolean simulatePaymentGateway(int amount) {
         // Simulate payment gateway - 80% success rate
-        // Fail for amounts > $100 to simulate insufficient funds
-        if (amountCents > 10000) {
+        // Fail for amounts > 100 to simulate insufficient funds
+        if (amount > 10000) {
             return false; // Simulate insufficient funds for large amounts
         }
         return secureRandom.nextInt(100) < 80; // 80% success rate
@@ -73,7 +73,7 @@ public class PaymentService {
 
     @Transactional
     public void processRefundRequest(RefundRequestedV1 event) {
-        log.info("Processing refund request orderId={} amount={} reason={}", event.getOrderId(), event.getAmountCents(), event.getReason());
+        log.info("Processing refund request orderId={} amount={} reason={}", event.getOrderId(), event.getAmount(), event.getReason());
 
         var payment = paymentRepository.findByOrderIdAndAndStatus(event.getOrderId(), PaymentStatus.AUTHORIZED)
                 .orElse(null);
@@ -90,12 +90,12 @@ public class PaymentService {
         var refundCompletedEvent = PaymentFactory.createRefundCompleted(payment, event.getReason());
         outboxService.publish(topics.getRefundCompleted(), payment.getOrderId().toString(), refundCompletedEvent);
 
-        log.info("Refund processed successfully orderId={} amount={}", event.getOrderId(), event.getAmountCents());
+        log.info("Refund processed successfully orderId={} amount={}", event.getOrderId(), event.getAmount());
     }
 
     @Transactional
     public void processFeeRequest(FeeRequestedV1 event) {
-        log.info("Processing fee request orderId={} feeCents={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
+        log.info("Processing fee request orderId={} fee={} reason={}", event.getOrderId(), event.getFee(), event.getReason());
 
         var payment = paymentRepository.findByOrderIdAndAndStatus(event.getOrderId(), PaymentStatus.AUTHORIZED)
                 .orElse(null);
@@ -106,22 +106,22 @@ public class PaymentService {
         }
 
         // Simulate fee charging (TODO: instead of this it should be charging customer's card)
-        var feeCharged = simulateFeeCharging(event.getFeeCents());
+        var feeCharged = simulateFeeCharging(event.getFee());
 
         if (feeCharged) {
-            log.info("Fee charged successfully ordferId={} amount={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
+            log.info("Fee charged successfully orderId={} amount={} reason={}", event.getOrderId(), event.getFee(), event.getReason());
 
             var feeChargedEvent = PaymentFactory.createFeeCharged(event);
             outboxService.publish(topics.getFeeCharged(), feeChargedEvent.getOrderId().toString(), feeChargedEvent);
         } else {
-            log.warn("Fee charging failed orderId={} amount={} reason={}", event.getOrderId(), event.getFeeCents(), event.getReason());
+            log.warn("Fee charging failed orderId={} amount={} reason={}", event.getOrderId(), event.getFee(), event.getReason());
 
             var feeFailedEvent = PaymentFactory.createFeeFailed(event, "Payment gateway error");
             outboxService.publish(topics.getFeeFailed(), feeFailedEvent.getOrderId().toString(), feeFailedEvent);
         }
     }
 
-    private boolean simulateFeeCharging(int feeCents) {
+    private boolean simulateFeeCharging(int fee) {
         // Simulate fee charging - 95% success rate
         return secureRandom.nextInt(100) < 95;
     }

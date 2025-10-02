@@ -18,8 +18,7 @@ public class OrderFactory {
         order.setCartId(event.getCartId());
         order.setCustomerUserId(event.getCustomerUserId());
         order.setRestaurantId(event.getRestaurantId());
-        order.setCurrency(event.getCurrency());
-        order.setTotalCents(event.getTotalCents());
+        order.setTotal(event.getTotal());
 
         var items = event.getItems().stream()
                 .map(item -> createOrderItemFromCart(item, order))
@@ -34,7 +33,7 @@ public class OrderFactory {
         orderItem.setId(UUID.randomUUID());
         orderItem.setMenuItemId(cartItem.getMenuItemId());
         orderItem.setName(cartItem.getName());
-        orderItem.setUnitPriceCents(cartItem.getUnitPriceCents());
+        orderItem.setUnitPrice(cartItem.getUnitPrice());
         orderItem.setQuantity(cartItem.getQuantity());
         orderItem.setOrder(order);
         return orderItem;
@@ -45,15 +44,14 @@ public class OrderFactory {
                 .map(item -> new OrderResponse.Item(
                         item.getMenuItemId(),
                         item.getName(),
-                        item.getUnitPriceCents(),
+                        item.getUnitPrice(),
                         item.getQuantity()
                 ))
                 .toList();
 
         return new OrderResponse(
                 order.getId(),
-                order.getTotalCents(),
-                order.getCurrency(),
+                order.getTotal(),
                 order.getStatus(),
                 items
         );

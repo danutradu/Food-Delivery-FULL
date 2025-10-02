@@ -6,14 +6,13 @@
     {"name":"orderId","type":{"type":"string","logicalType":"uuid"}},
     {"name":"customerUserId","type":{"type":"string","logicalType":"uuid"}},
     {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
-    {"name":"totalCents","type":"int"},
-    {"name":"currency","type":"string"},
+    {"name":"total","type":"int"},
     {"name":"items","type":{"type":"array","items":{
       "type":"record","name":"OrderItem",
       "fields":[
         {"name":"menuItemId","type":{"type":"string","logicalType":"uuid"}},
         {"name":"name","type":"string"},
-        {"name":"unitPriceCents","type":"int"},
+        {"name":"unitPrice","type":"int"},
         {"name":"quantity","type":"int"}
       ]
     }}}

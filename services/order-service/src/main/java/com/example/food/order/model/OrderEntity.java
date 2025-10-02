@@ -16,8 +16,7 @@ public class OrderEntity {
   @Column(nullable = false) private UUID cartId;
   @Column(nullable=false) private UUID customerUserId;
   @Column(nullable=false) private UUID restaurantId;
-  @Column(nullable=false) private int totalCents;
-  @Column(nullable=false) private String currency = "USD"; // for now
+  @Column(nullable=false) private int total;
   @Enumerated(EnumType.STRING)
   @Column(nullable = false) private OrderStatus status = OrderStatus.PENDING;
   @Column(nullable=false) private Instant createdAt = Instant.now();

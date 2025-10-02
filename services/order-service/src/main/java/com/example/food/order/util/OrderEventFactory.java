@@ -22,7 +22,7 @@ public class OrderEventFactory {
                 .map(item -> new OrderItem(
                         item.getMenuItemId(),
                         item.getName(),
-                        item.getUnitPriceCents(),
+                        item.getUnitPrice(),
                         item.getQuantity()
                 ))
                 .toList();
@@ -34,8 +34,7 @@ public class OrderEventFactory {
                 .setCustomerUserId(order.getCustomerUserId())
                 .setRestaurantId(order.getRestaurantId())
                 .setItems(items)
-                .setTotalCents(order.getTotalCents())
-                .setCurrency(order.getCurrency())
+                .setTotal(order.getTotal())
                 .build();
     }
 
@@ -44,20 +43,18 @@ public class OrderEventFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 order.getId(),
-                order.getTotalCents(),
-                order.getCurrency()
+                order.getTotal()
         );
     }
 
     public RefundRequestedV1 createRefundRequested(OrderEntity order, RefundPolicy refundPolicy) {
-        int refundAmount = refundPolicy.refundType() == RefundType.FULL ? order.getTotalCents() : 0;
+        int refundAmount = refundPolicy.refundType() == RefundType.FULL ? order.getTotal() : 0;
 
         return new RefundRequestedV1(
                 UUID.randomUUID(),
                 Instant.now(),
                 order.getId(),
                 refundAmount,
-                order.getCurrency(),
                 refundPolicy.reason()
         );
     }
@@ -67,8 +64,7 @@ public class OrderEventFactory {
                 UUID.randomUUID(),
                 Instant.now(),
                 order.getId(),
-                refundPolicy.feeCents(),
-                order.getCurrency(),
+                refundPolicy.fee(),
                 refundPolicy.reason()
         );
     }

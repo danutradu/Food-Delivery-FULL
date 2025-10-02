@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
     section_id UUID,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    price_cents INTEGER NOT NULL,
+    price INTEGER NOT NULL,
     available BOOLEAN DEFAULT true,
     version INTEGER DEFAULT 0
 );
@@ -96,7 +96,7 @@ VALUES (
        ) ON CONFLICT (id) DO NOTHING;
 
 -- Sample menu items for Pizza Palace
-INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price_cents, available, version)
+INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price, available, version)
 VALUES (
            '550e8400-e29b-41d4-a716-446655440101',
            '550e8400-e29b-41d4-a716-446655440001',
@@ -108,7 +108,7 @@ VALUES (
            0
        ) ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price_cents, available, version)
+INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price, available, version)
 VALUES (
            '550e8400-e29b-41d4-a716-446655440102',
            '550e8400-e29b-41d4-a716-446655440001',
@@ -121,7 +121,7 @@ VALUES (
        ) ON CONFLICT (id) DO NOTHING;
 
 -- Sample menu items for Burger Barn
-INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price_cents, available, version)
+INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price, available, version)
 VALUES (
            '550e8400-e29b-41d4-a716-446655440201',
            '550e8400-e29b-41d4-a716-446655440002',
@@ -133,7 +133,7 @@ VALUES (
             0
        ) ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price_cents, available, version)
+INSERT INTO menu_items (id, restaurant_id, section_id, name, description, price, available, version)
 VALUES (
            '550e8400-e29b-41d4-a716-446655440202',
            '550e8400-e29b-41d4-a716-446655440002',

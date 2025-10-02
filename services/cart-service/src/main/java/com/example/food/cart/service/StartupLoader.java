@@ -76,8 +76,7 @@ public class StartupLoader implements ApplicationRunner {
                                                 restaurant.id(),
                                                 item.id(),
                                                 item.name(),
-                                                item.priceCents(),
-                                                item.currency(),
+                                                item.price(),
                                                 item.available()
                                         );
                                     }
@@ -103,6 +102,6 @@ public class StartupLoader implements ApplicationRunner {
     public record RestaurantDto(UUID id, String name) {
     }
 
-    public record MenuItemDto(UUID id, String name, int priceCents, String currency, boolean available) {
+    public record MenuItemDto(UUID id, String name, int price, String currency, boolean available) {
     }
 }

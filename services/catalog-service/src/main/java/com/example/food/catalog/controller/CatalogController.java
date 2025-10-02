@@ -35,7 +35,7 @@ public class CatalogController {
 
     @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
     @PutMapping("/restaurants/{id}/menu/items/{itemId}")
-    public MenuItemEntity updateMenuItem(@PathVariable("id") UUID restaurantId, @PathVariable("itemId") UUID itemId, @Valid @RequestBody MenuItemUpsert req) {
+    public MenuItemEntity updateMenuItem(@PathVariable("id") UUID restaurantId, @PathVariable UUID itemId, @Valid @RequestBody MenuItemUpsert req) {
         return catalogService.updateMenuItem(restaurantId, itemId, req);
     }
 
@@ -62,7 +62,7 @@ public class CatalogController {
 
     @PreAuthorize("hasAnyRole('RESTAURANT_OWNER', 'ADMIN')")
     @PutMapping("/restaurants/{restaurantId}/menu/items/{itemId}/availability")
-    public MenuItemEntity toggleAvailability(@PathVariable UUID restaurantId, @PathVariable UUID itemId, @RequestParam boolean available) {
+    public MenuItemEntity setAvailability(@PathVariable UUID restaurantId, @PathVariable UUID itemId, @RequestParam boolean available) {
         return catalogService.setMenuItemAvailability(restaurantId, itemId, available);
     }
 

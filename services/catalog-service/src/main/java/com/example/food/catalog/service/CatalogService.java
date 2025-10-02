@@ -71,7 +71,7 @@ public class CatalogService {
 
         menuItem.setName(req.name());
         menuItem.setDescription(req.description());
-        menuItem.setPriceCents(req.priceCents());
+        menuItem.setPrice(req.price());
         menuItem.setSectionId(req.sectionId());
         menuItem.setAvailable(req.available());
 
@@ -131,7 +131,7 @@ public class CatalogService {
         menuItemRepository.save(menuItem);
 
         var event = CatalogFactory.createMenuItemUpdated(menuItem);
-        outboxService.publish(topics.getMenuItemDeleted(), event.getMenuItemId().toString(), event);
+        outboxService.publish(topics.getMenuItemUpdated(), event.getMenuItemId().toString(), event);
 
         log.info("Published menu item availability event itemId={} available={}", itemId, available);
         return menuItem;

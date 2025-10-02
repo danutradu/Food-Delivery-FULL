@@ -29,8 +29,14 @@ public class CatalogController {
 
     @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
     @PostMapping("/restaurants/{id}/menu/items")
-    public MenuItemEntity upsertMenuItem(@PathVariable("id") UUID restaurantId, @Valid @RequestBody MenuItemUpsert req) {
-        return catalogService.upsertMenuItem(restaurantId, req);
+    public MenuItemEntity createMenuItem(@PathVariable("id") UUID restaurantId, @Valid @RequestBody MenuItemUpsert req) {
+        return catalogService.createMenuItem(restaurantId, req);
+    }
+
+    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER','ADMIN')")
+    @PutMapping("/restaurants/{id}/menu/items/{itemId}")
+    public MenuItemEntity updateMenuItem(@PathVariable("id") UUID restaurantId, @PathVariable("itemId") UUID itemId, @Valid @RequestBody MenuItemUpsert req) {
+        return catalogService.updateMenuItem(restaurantId, itemId, req);
     }
 
     @GetMapping("/restaurants")
@@ -55,13 +61,13 @@ public class CatalogController {
     }
 
     @PreAuthorize("hasAnyRole('RESTAURANT_OWNER', 'ADMIN')")
-    @DeleteMapping("/restaurants/{restaurantId}/menu/items/{itemId}/availability")
+    @PutMapping("/restaurants/{restaurantId}/menu/items/{itemId}/availability")
     public MenuItemEntity toggleAvailability(@PathVariable UUID restaurantId, @PathVariable UUID itemId, @RequestParam boolean available) {
         return catalogService.setMenuItemAvailability(restaurantId, itemId, available);
     }
 
     @PreAuthorize("hasAnyRole('RESTAURANT_OWNER', 'ADMIN')")
-    @DeleteMapping("/restaurants/{id}/status")
+    @PutMapping("/restaurants/{id}/status")
     public RestaurantEntity setRestaurantStatus(@PathVariable UUID id, @RequestParam boolean open) {
         return catalogService.setRestaurantStatus(id, open);
     }

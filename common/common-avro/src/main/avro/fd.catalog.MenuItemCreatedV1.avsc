@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "MenuItemCreatedV1",
+  "namespace": "fd.catalog",
+  "fields": [
+    {"name":"eventId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"timestamp","type":{"type":"long","logicalType":"timestamp-millis"}},
+    {"name":"restaurantId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"menuItemId","type":{"type":"string","logicalType":"uuid"}},
+    {"name":"name","type":"string"},
+    {"name":"priceCents","type":"int"},
+    {"name":"currency","type":"string"},
+    {"name":"available","type":"boolean"}
+  ]
+}

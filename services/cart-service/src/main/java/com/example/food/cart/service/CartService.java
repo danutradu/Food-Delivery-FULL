@@ -3,10 +3,7 @@ package com.example.food.cart.service;
 import com.example.food.cart.config.KafkaTopics;
 import com.example.food.cart.dto.AddItemRequest;
 import com.example.food.cart.dto.CartResponse;
-import com.example.food.cart.exception.CartItemNotFoundException;
-import com.example.food.cart.exception.CartNotFoundForUserException;
-import com.example.food.cart.exception.EmptyCartException;
-import com.example.food.cart.exception.RestaurantMismatchException;
+import com.example.food.cart.exception.*;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.repository.CartRepository;
 import com.example.food.cart.util.CartFactory;
@@ -25,15 +22,22 @@ public class CartService {
     private final CartRepository cartRepository;
     private final OutboxService outboxService;
     private final KafkaTopics topics;
+    private final MenuItemCacheService menuItemCacheService;
 
     public CartResponse addItem(AddItemRequest req, UUID customerUserId) {
-        log.info("CartItemAdded customerUserId={} name={} qty={} priceCents={}", customerUserId, req.name(), req.quantity(), req.unitPriceCents());
+        log.info("Adding item to cart customerUserId={} restaurantId={} menuItemId={} quantity={}", customerUserId, req.restaurantId(), req.menuItemId(), req.quantity());
+
+        var menuItem = menuItemCacheService.getMenuItem(req.restaurantId(), req.menuItemId());
+        if (menuItem == null || !menuItem.available()) {
+            throw new MenuItemNotFoundException(req.restaurantId(), req.menuItemId());
+        }
 
         var cart = cartRepository.findByCustomerUserId(customerUserId).orElseGet(() -> {
             var nc = new CartEntity();
             nc.setId(UUID.randomUUID());
             nc.setCustomerUserId(customerUserId);
             nc.setRestaurantId(req.restaurantId());
+            nc.setCurrency(menuItem.currency());
             return nc;
         });
 
@@ -51,7 +55,7 @@ public class CartService {
             item.setQuantity(oldQuantity + req.quantity());
             log.info("Merged with existing item menuItemId={} oldQuantity={} added={} newQuantity={}", req.menuItemId(), oldQuantity, req.quantity(), item.getQuantity());
         } else {
-            var item = CartFactory.createCartItem(req);
+            var item = CartFactory.createCartItem(req.menuItemId(), menuItem.name(), menuItem.priceCents(), req.quantity());
             item.setCart(cart);
             cart.getItems().add(item);
             log.info("Added new item to cart menuItemId={} quantity={}", req.menuItemId(), req.quantity());
@@ -127,7 +131,7 @@ public class CartService {
         }
 
         var event = CartFactory.createCartCheckedOut(cart);
-        outboxService.publish(topics.getCartCheckedOut(), cart.getItems().toString(), event);
+        outboxService.publish(topics.getCartCheckedOut(), event.getCartId().toString(), event);
 
         cartRepository.delete(cart);
         log.info("Cart checked out and deleted cartId={} customerUserId={} items={} total={}{} restaurantId={}",

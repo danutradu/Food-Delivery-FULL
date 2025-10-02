@@ -20,7 +20,22 @@ public class TopicsConfig {
     private int replicas;
 
     @Bean
-    public NewTopic userRegistered() {
+    public NewTopic restaurantCreated() {
         return TopicBuilder.name(topics.getRestaurantCreated()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic menuItemCreated() {
+        return TopicBuilder.name(topics.getMenuItemCreated()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic menuItemUpdated() {
+        return TopicBuilder.name(topics.getMenuItemUpdated()).partitions(partitions).replicas(replicas).build();
+    }
+
+    @Bean
+    public NewTopic menuItemDeleted() {
+        return TopicBuilder.name(topics.getMenuItemDeleted()).partitions(partitions).replicas(replicas).build();
     }
 }

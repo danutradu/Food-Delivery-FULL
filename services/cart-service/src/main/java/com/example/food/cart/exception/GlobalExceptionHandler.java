@@ -33,6 +33,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().build();
     }
 
+    @ExceptionHandler(MenuItemNotFoundException.class)
+    public ResponseEntity<Void> handleMenuItemNotFoundException(MenuItemNotFoundException e) {
+        log.warn(e.getMessage());
+        return ResponseEntity.badRequest().build();
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("Invalid argument: {}", e.getMessage());

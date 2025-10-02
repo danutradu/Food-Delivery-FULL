@@ -1,6 +1,5 @@
 package com.example.food.cart.util;
 
-import com.example.food.cart.dto.AddItemRequest;
 import com.example.food.cart.dto.CartResponse;
 import com.example.food.cart.model.CartEntity;
 import com.example.food.cart.model.CartItemEntity;
@@ -14,13 +13,13 @@ import java.util.UUID;
 @UtilityClass
 public class CartFactory {
 
-    public CartItemEntity createCartItem(AddItemRequest req) {
+    public CartItemEntity createCartItem(UUID menuItemId, String name, int unitPriceCents, int quantity) {
         var item = new CartItemEntity();
         item.setId(UUID.randomUUID());
-        item.setMenuItemId(req.menuItemId());
-        item.setName(req.name());
-        item.setUnitPriceCents(req.unitPriceCents());
-        item.setQuantity(req.quantity());
+        item.setMenuItemId(menuItemId);
+        item.setName(name);
+        item.setUnitPriceCents(unitPriceCents);
+        item.setQuantity(quantity);
         return item;
     }
 

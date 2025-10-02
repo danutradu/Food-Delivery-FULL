@@ -43,14 +43,44 @@ public class CatalogService {
         return restaurant;
     }
 
-    public MenuItemEntity upsertMenuItem(UUID restaurantId, MenuItemUpsert req) {
-        log.info("MenuItemUpsert restaurantId={} name={}", restaurantId, req.name());
+    @Transactional
+    public MenuItemEntity createMenuItem(UUID restaurantId, MenuItemUpsert req) {
+        log.info("MenuItemCreate restaurantId={} name={}", restaurantId, req.name());
 
         var menuItem = CatalogFactory.createMenuItem(req);
         menuItem.setRestaurantId(restaurantId);
         menuItemRepository.save(menuItem);
 
-        log.info("Menu item upserted menuItemId={}", menuItem.getId());
+        var event = CatalogFactory.createMenuItemCreated(menuItem);
+        outboxService.publish(topics.getMenuItemCreated(), event.getMenuItemId().toString(), event);
+
+        log.info("Menu item created menuItemId={}", menuItem.getId());
+        return menuItem;
+    }
+
+    @Transactional
+    public MenuItemEntity updateMenuItem(UUID restaurantId, UUID menuItemId, MenuItemUpsert req) {
+        log.info("MenuItemUpdate restaurantId={} menuItemId={} name={}", restaurantId, menuItemId, req.name());
+
+        var menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new MenuItemNotFoundException(menuItemId.toString()));
+
+        if (!menuItem.getRestaurantId().equals(restaurantId)) {
+            throw new IllegalArgumentException("Menu item does not belong to restaurant");
+        }
+
+        menuItem.setName(req.name());
+        menuItem.setDescription(req.description());
+        menuItem.setPriceCents(req.priceCents());
+        menuItem.setSectionId(req.sectionId());
+        menuItem.setAvailable(req.available());
+
+        menuItemRepository.save(menuItem);
+
+        var event = CatalogFactory.createMenuItemUpdated(menuItem);
+        outboxService.publish(topics.getMenuItemUpdated(), event.getMenuItemId().toString(), event);
+
+        log.info("Menu item updated menuItemId={}", menuItem.getId());
         return menuItem;
     }
 
@@ -67,6 +97,7 @@ public class CatalogService {
         return menuItemRepository.findByRestaurantId(restaurantId);
     }
 
+    @Transactional
     public void deleteMenuItem(UUID restaurantId, UUID itemId) {
         log.info("MenuItemDeleted restaurantId={} itemId={}", restaurantId, itemId);
 
@@ -78,6 +109,10 @@ public class CatalogService {
         }
 
         menuItemRepository.delete(menuItem);
+
+        var event = CatalogFactory.createMenuItemDeleted(restaurantId, itemId);
+        outboxService.publish(topics.getMenuItemDeleted(), event.getMenuItemId().toString(), event);
+
         log.info("Menu item deleted itemId={}", itemId);
     }
 
@@ -94,6 +129,9 @@ public class CatalogService {
 
         menuItem.setAvailable(available);
         menuItemRepository.save(menuItem);
+
+        var event = CatalogFactory.createMenuItemUpdated(menuItem);
+        outboxService.publish(topics.getMenuItemDeleted(), event.getMenuItemId().toString(), event);
 
         log.info("Published menu item availability event itemId={} available={}", itemId, available);
         return menuItem;

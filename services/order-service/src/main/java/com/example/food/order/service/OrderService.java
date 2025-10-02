@@ -105,7 +105,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void processPaymentAccepted(RestaurantAcceptedV1 event) {
+    public void processRestaurantAccepted(RestaurantAcceptedV1 event) {
         log.info("Restaurant accepted, requesting delivery orderId={}", event.getOrderId());
 
         var order = findOrder(event.getOrderId());
@@ -187,8 +187,8 @@ public class OrderService {
 
         var order = findOrder(event.getOrderId());
 
-        if (order.getStatus() != OrderStatus.RESTAURANT_ACCEPTED) {
-            log.debug("Order not in READY_FOR_PICK status orderId={} status={}", order.getId(), order.getStatus());
+        if (order.getStatus() != OrderStatus.READY_FOR_PICKUP) {
+            log.debug("Order not in READY_FOR_PICKUP status orderId={} status={}", order.getId(), order.getStatus());
             return;
         }
 
@@ -212,7 +212,7 @@ public class OrderService {
         order.setStatus(OrderStatus.DELIVERED);
         orderRepository.save(order);
 
-        log.info("Order completed - delivered to customer orderId orderId={}", event.getOrderId());
+        log.info("Order completed - delivered to customer orderId={}", event.getOrderId());
     }
 
     @Transactional
@@ -277,7 +277,7 @@ public class OrderService {
     }
 
     public List<OrderEntity> getAllOrders() {
-        log.info("Admin getting al orders");
+        log.info("Admin getting all orders");
 
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }

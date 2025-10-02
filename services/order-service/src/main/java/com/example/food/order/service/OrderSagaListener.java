@@ -3,8 +3,6 @@ package com.example.food.order.service;
 import com.example.food.common.outbox.OutboxService;
 import com.example.food.order.config.KafkaTopics;
 import com.example.food.order.config.StandardRetryableTopic;
-import com.example.food.order.exception.OrderNotFoundException;
-import com.example.food.order.model.OrderEntity;
 import com.example.food.order.model.OrderStatus;
 import com.example.food.order.repository.OrderRepository;
 import fd.cart.CartCheckedOutV1;
@@ -52,7 +50,7 @@ public class OrderSagaListener {
     @StandardRetryableTopic
     @KafkaListener(topics = "${kafka.topics.restaurant-accepted}", groupId = "${kafka.consumer.group-id}")
     public void onRestaurantAccepted(RestaurantAcceptedV1 event) {
-        orderService.processPaymentAccepted(event);
+        orderService.processRestaurantAccepted(event);
     }
 
     @StandardRetryableTopic

@@ -22,14 +22,14 @@ public class OrderFactory {
         order.setTotalCents(event.getTotalCents());
 
         var items = event.getItems().stream()
-                .map(item -> createOrderItem(item, order))
+                .map(item -> createOrderItemFromCart(item, order))
                 .toList();
         order.setItems(items);
 
         return order;
     }
 
-    private OrderItemEntity createOrderItem(CartItem cartItem, OrderEntity order) {
+    private OrderItemEntity createOrderItemFromCart(CartItem cartItem, OrderEntity order) {
         var orderItem = new OrderItemEntity();
         orderItem.setId(UUID.randomUUID());
         orderItem.setMenuItemId(cartItem.getMenuItemId());

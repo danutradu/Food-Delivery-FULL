@@ -81,6 +81,9 @@ kafka:
     replicas: ${KAFKA_TOPIC_REPLICAS:1}
     # Producer topics
     restaurant-created: ${KAFKA_TOPIC_RESTAURANT_CREATED:fd.catalog.restaurant-created.v1}
+    menu-item-created: ${KAFKA_TOPIC_MENU_ITEM_CREATED:fd.catalog.menu-item-created.v1}
+    menu-item-updated: ${KAFKA_TOPIC_MENU_ITEM_UPDATED:fd.catalog.menu-item-updated.v1}
+    menu-item-deleted: ${KAFKA_TOPIC_MENU_ITEM_DELETED:fd.catalog.menu-item-deleted.v1}
 
 outbox:
   max-retries: ${OUTBOX_MAX_RETRIES:5}

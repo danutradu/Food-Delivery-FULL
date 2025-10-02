@@ -24,7 +24,7 @@ public class OrderController {
     @GetMapping("/orders/{orderId}")
     public OrderResponse getOrder(@PathVariable UUID orderId, Authentication auth) {
         var userId = UUID.fromString(((Jwt) auth.getPrincipal()).getSubject());
-        return orderService.getOrder(userId, userId);
+        return orderService.getOrder(orderId, userId);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")

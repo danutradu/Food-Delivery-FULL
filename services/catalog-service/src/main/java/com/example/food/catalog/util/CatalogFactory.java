@@ -4,6 +4,8 @@ import com.example.food.catalog.dto.MenuItemUpsert;
 import com.example.food.catalog.dto.RestaurantUpsert;
 import com.example.food.catalog.model.MenuItemEntity;
 import com.example.food.catalog.model.RestaurantEntity;
+import fd.catalog.MenuItemCreatedV1;
+import fd.catalog.MenuItemDeletedV1;
 import fd.catalog.MenuItemUpdatedV1;
 import fd.catalog.RestaurantCreatedV1;
 import lombok.experimental.UtilityClass;
@@ -47,6 +49,19 @@ public class CatalogFactory {
         return menuItem;
     }
 
+    public MenuItemCreatedV1 createMenuItemCreated(MenuItemEntity menuItem) {
+        return new MenuItemCreatedV1(
+                UUID.randomUUID(),
+                Instant.now(),
+                menuItem.getRestaurantId(),
+                menuItem.getId(),
+                menuItem.getName(),
+                menuItem.getPriceCents(),
+                "USD", // Default currency
+                menuItem.isAvailable()
+        );
+    }
+
     public MenuItemUpdatedV1 createMenuItemUpdated(MenuItemEntity menuItem) {
         return MenuItemUpdatedV1.newBuilder()
                 .setEventId(UUID.randomUUID())
@@ -57,7 +72,17 @@ public class CatalogFactory {
                 .setDescription(menuItem.getDescription())
                 .setPriceCents(menuItem.getPriceCents())
                 .setSectionId(menuItem.getSectionId())
+                .setCurrency("USD") // default for now
                 .setAvailable(menuItem.isAvailable())
                 .build();
+    }
+
+    public MenuItemDeletedV1 createMenuItemDeleted(UUID restaurantId, UUID menuItemId) {
+        return new MenuItemDeletedV1(
+                UUID.randomUUID(),
+                Instant.now(),
+                restaurantId,
+                menuItemId
+        );
     }
 }
